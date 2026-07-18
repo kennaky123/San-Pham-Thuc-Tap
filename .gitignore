@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production builds and coverage
+dist/
+**/dist/
+coverage/
+**/coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime uploads; keep the directory itself
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Local tooling caches
+.eslintcache
+*.local

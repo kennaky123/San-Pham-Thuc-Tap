@@ -1,0 +1,33 @@
+{
+  "name": "it-helpdesk-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src --ext js,json src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/scripts/seed.js",
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.4",
+    "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}
