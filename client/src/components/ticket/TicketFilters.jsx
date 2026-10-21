@@ -1,26 +1,26 @@
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 import { useRef } from "react";
 import { getTicketListErrorMessage } from "../../services/ticketService.js";
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Đang chờ" },
-  { value: "assigned", label: "Đã phân công" },
-  { value: "in_progress", label: "Đang xử lý" },
-  { value: "waiting_user", label: "Chờ người dùng" },
-  { value: "resolved", label: "Đã giải quyết" },
-  { value: "closed", label: "Đã đóng" },
-  { value: "cancelled", label: "Đã hủy" },
+  { value: "pending", label: "Mới Tiếp Nhận" },
+  { value: "assigned", label: "Đã Phân Công" },
+  { value: "in_progress", label: "Đang Xử Lý" },
+  { value: "waiting_user", label: "Chờ User" },
+  { value: "resolved", label: "Đã Xong" },
+  { value: "closed", label: "Đã Đóng" },
+  { value: "cancelled", label: "Đã Hủy" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "low", label: "Thấp" },
-  { value: "medium", label: "Trung bình" },
-  { value: "high", label: "Cao" },
-  { value: "urgent", label: "Khẩn cấp" },
+  { value: "urgent", label: "P1 - Khẩn Cấp" },
+  { value: "high", label: "P2 - Cao" },
+  { value: "medium", label: "P3 - Vừa" },
+  { value: "low", label: "P4 - Thấp" },
 ];
 
 const selectClasses =
-  "h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-3 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
+  "rounded-lg border border-brand-bone bg-brand-mist px-3 py-1.5 text-xs font-semibold text-brand-ink outline-none transition focus:border-brand-violet focus:bg-white disabled:cursor-not-allowed disabled:opacity-50";
 
 function TicketFilters({
   query,
@@ -56,123 +56,146 @@ function TicketFilters({
     onFilterChange("search", searchInputRef.current?.value ?? "");
   }
 
+  const activePill = !query.status && !query.priority
+    ? "all"
+    : query.priority === "urgent"
+      ? "p1"
+      : query.status === "pending"
+        ? "unassigned"
+        : query.status === "in_progress"
+          ? "in_progress"
+          : "custom";
+
   return (
     <section
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+      className="rounded-xl border border-brand-bone bg-white p-3.5 shadow-xs"
       aria-labelledby="ticket-filters-title"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-5 text-slate-500" aria-hidden="true" />
-          <h2
-            id="ticket-filters-title"
-            className="text-sm font-semibold text-slate-900"
+      <h2 id="ticket-filters-title" className="sr-only">
+        Tìm kiếm và bộ lọc
+      </h2>
+
+      {/* Top Row: Quick Filter Pills & Search */}
+      <div className="flex flex-col items-stretch justify-between gap-3 lg:flex-row lg:items-center">
+        {/* Quick Filter Pills from DeskPro IT */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onReset}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              activePill === "all"
+                ? "bg-brand-ink text-white shadow-xs"
+                : "text-brand-slate hover:bg-brand-mist"
+            }`}
           >
-            Tìm kiếm và bộ lọc
-          </h2>
-          {activeFilterCount > 0 ? (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              {activeFilterCount}
-            </span>
-          ) : null}
+            Tất Cả
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onFilterChange("priority", query.priority === "urgent" ? "" : "urgent");
+            }}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              activePill === "p1"
+                ? "bg-brand-ink text-white shadow-xs"
+                : "text-red-600 hover:bg-red-50"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            P1 - Khẩn Cấp
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onFilterChange("status", query.status === "pending" ? "" : "pending");
+            }}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              activePill === "unassigned"
+                ? "bg-brand-ink text-white shadow-xs"
+                : "text-brand-slate hover:bg-brand-mist"
+            }`}
+          >
+            Mới Tiếp Nhận
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onFilterChange("status", query.status === "in_progress" ? "" : "in_progress");
+            }}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              activePill === "in_progress"
+                ? "bg-brand-ink text-white shadow-xs"
+                : "text-brand-slate hover:bg-brand-mist"
+            }`}
+          >
+            Đang Xử Lý
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          disabled={!hasActiveFilters}
-          className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <RotateCcw className="size-4" aria-hidden="true" />
-          Xóa bộ lọc
-        </button>
-      </div>
 
-      <form
-        className="mt-4 flex flex-col gap-2 sm:flex-row"
-        role="search"
-        onSubmit={handleSearchSubmit}
-      >
-        <label htmlFor="ticket-search" className="sr-only">
-          Tìm theo mã ticket hoặc tiêu đề
-        </label>
-        <div className="relative min-w-0 flex-1">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-slate-400"
-            aria-hidden="true"
-          />
-          <input
-            key={searchInputKey}
-            ref={searchInputRef}
-            id="ticket-search"
-            name="search"
-            type="search"
-            defaultValue={query.search}
-            maxLength={100}
-            placeholder="Nhập mã ticket hoặc tiêu đề..."
-            className="h-11 w-full rounded-lg border border-slate-300 bg-white pr-3 pl-11 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-100 sm:text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-        >
-          <Search className="size-4" aria-hidden="true" />
-          Tìm kiếm
-        </button>
-      </form>
+        {/* Right Side: Search + Select Filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          <form
+            className="relative min-w-56 flex-1 sm:flex-initial"
+            role="search"
+            onSubmit={handleSearchSubmit}
+          >
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-brand-ash"
+              aria-hidden="true"
+            />
+            <input
+              key={searchInputKey}
+              ref={searchInputRef}
+              id="ticket-search"
+              name="search"
+              type="search"
+              defaultValue={query.search}
+              maxLength={100}
+              placeholder="Lọc theo mã INC, tiêu đề, người gửi..."
+              className="w-full rounded-lg border border-brand-bone bg-brand-mist py-1.5 pr-3 pl-8 text-xs font-medium text-brand-ink outline-none transition placeholder:text-brand-ash focus:border-brand-violet focus:bg-white sm:w-64"
+            />
+          </form>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div>
-          <label htmlFor="status-filter" className="mb-1.5 block text-xs font-medium text-slate-600">
-            Trạng thái
-          </label>
           <select
             id="status-filter"
+            aria-label="Lọc theo trạng thái"
             value={query.status}
             onChange={(event) => onFilterChange("status", event.target.value)}
             className={selectClasses}
           >
-            <option value="">Tất cả trạng thái</option>
+            <option value="">Trạng Thái: Tất Cả</option>
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-        </div>
 
-        <div>
-          <label htmlFor="priority-filter" className="mb-1.5 block text-xs font-medium text-slate-600">
-            Mức độ ưu tiên
-          </label>
           <select
             id="priority-filter"
+            aria-label="Lọc theo mức độ ưu tiên"
             value={query.priority}
             onChange={(event) => onFilterChange("priority", event.target.value)}
             className={selectClasses}
           >
-            <option value="">Tất cả mức độ</option>
+            <option value="">Mức Độ: Tất Cả</option>
             {PRIORITY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-        </div>
 
-        <div>
-          <label htmlFor="category-filter" className="mb-1.5 block text-xs font-medium text-slate-600">
-            Danh mục
-          </label>
           <select
             id="category-filter"
+            aria-label="Lọc theo danh mục"
             value={query.category}
             onChange={(event) => onFilterChange("category", event.target.value)}
             className={selectClasses}
             disabled={optionsLoading}
           >
             <option value="">
-              {optionsLoading ? "Đang tải danh mục..." : "Tất cả danh mục"}
+              {optionsLoading ? "Đang tải danh mục..." : "Danh Mục: Tất Cả"}
             </option>
             {categoryIsMissing ? (
               <option value={query.category}>Danh mục đang chọn</option>
@@ -183,14 +206,10 @@ function TicketFilters({
               </option>
             ))}
           </select>
-        </div>
 
-        <div>
-          <label htmlFor="technician-filter" className="mb-1.5 block text-xs font-medium text-slate-600">
-            Technician
-          </label>
           <select
             id="technician-filter"
+            aria-label="Lọc theo kỹ thuật viên"
             value={query.technician}
             onChange={(event) =>
               onFilterChange("technician", event.target.value)
@@ -199,10 +218,10 @@ function TicketFilters({
             disabled={optionsLoading}
           >
             <option value="">
-              {optionsLoading ? "Đang tải technician..." : "Tất cả technician"}
+              {optionsLoading ? "Đang tải..." : "Kỹ Thuật Viên: Tất Cả"}
             </option>
             {technicianIsMissing ? (
-              <option value={query.technician}>Technician đang chọn</option>
+              <option value={query.technician}>Kỹ thuật viên đang chọn</option>
             ) : null}
             {technicians.map((technician) => (
               <option key={technician.id} value={technician.id}>
@@ -210,39 +229,46 @@ function TicketFilters({
               </option>
             ))}
           </select>
-        </div>
 
-        <div>
-          <label htmlFor="sort-filter" className="mb-1.5 block text-xs font-medium text-slate-600">
-            Sắp xếp
-          </label>
           <select
             id="sort-filter"
+            aria-label="Sắp xếp"
             value={query.sortOrder}
             onChange={(event) =>
               onFilterChange("sortOrder", event.target.value)
             }
             className={selectClasses}
           >
-            <option value="desc">Ngày tạo: mới nhất</option>
-            <option value="asc">Ngày tạo: cũ nhất</option>
+            <option value="desc">Mới nhất trước</option>
+            <option value="asc">Cũ nhất trước</option>
           </select>
+
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={onReset}
+              className="inline-flex items-center gap-1 rounded-lg border border-brand-bone bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-slate transition hover:bg-brand-mist hover:text-brand-ink"
+            >
+              <RotateCcw className="size-3.5" aria-hidden="true" />
+              Đặt lại ({activeFilterCount})
+            </button>
+          ) : null}
         </div>
       </div>
 
       {optionsError ? (
         <div
-          className="mt-4 flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between"
+          className="mt-3 flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between"
           role="alert"
         >
           <p>
-            {getTicketListErrorMessage(optionsError)} Bộ lọc danh mục và
-            technician tạm thời chưa khả dụng.
+            {getTicketListErrorMessage(optionsError)} Bộ lọc danh mục và kỹ
+            thuật viên tạm thời chưa khả dụng.
           </p>
           <button
             type="button"
             onClick={onRetryOptions}
-            className="min-h-9 shrink-0 self-start rounded-lg px-3 py-1.5 font-semibold hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-amber-700 sm:self-auto"
+            className="shrink-0 rounded-lg px-2.5 py-1 font-semibold hover:bg-amber-100"
           >
             Tải lại tùy chọn
           </button>

@@ -35,6 +35,23 @@ export function getCurrentUser() {
   return currentUserRequest;
 }
 
+export async function updateUserProfile(payload) {
+  const response = await axiosClient.patch("/auth/profile", payload);
+  return parseAuthenticationData(response.data?.data);
+}
+
+export async function updateUserAvatar(file) {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await axiosClient.post("/auth/avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return parseAuthenticationData(response.data?.data);
+}
+
 export async function changePassword(payload) {
   const response = await axiosClient.patch("/auth/change-password", payload);
   return parseAuthenticationData(response.data?.data);

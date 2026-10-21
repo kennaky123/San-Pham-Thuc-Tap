@@ -40,6 +40,7 @@ const TechnicianHistoryPage = lazy(() => import("../pages/technician/TechnicianH
 const AdminTechniciansPage = lazy(() => import("../pages/admin/AdminTechniciansPage.jsx"));
 const AdminCategoriesPage = lazy(() => import("../pages/admin/AdminCategoriesPage.jsx"));
 const AdminReportsPage = lazy(() => import("../pages/admin/AdminReportsPage.jsx"));
+const NetworkTopologyPage = lazy(() => import("../pages/NetworkTopologyPage.jsx"));
 
 function StandardPageRoute({ children }) {
   return <Suspense fallback={<TicketListSkeleton />}>{children}</Suspense>;
@@ -113,6 +114,10 @@ function AppRoutes() {
           <Route
             path="profile"
             element={<StandardPageRoute><ProfilePage /></StandardPageRoute>}
+          />
+          <Route
+            path="topology"
+            element={<StandardPageRoute><NetworkTopologyPage /></StandardPageRoute>}
           />
 
           <Route element={<RoleRoute allowedRoles={["user"]} />}>

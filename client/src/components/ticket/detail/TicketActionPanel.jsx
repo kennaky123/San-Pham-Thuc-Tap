@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -8,15 +7,14 @@ import {
   UserRoundCheck,
   Workflow,
 } from "lucide-react";
+import { useState } from "react";
 import useActiveTechnicians from "../../../hooks/useActiveTechnicians.js";
-import {
-  getTicketActionError,
-} from "../../../services/ticketService.js";
+import { getTicketActionError } from "../../../services/ticketService.js";
 import { getUserServiceErrorMessage } from "../../../services/userService.js";
 import { getTicketStatusLabel } from "../../../utils/ticketPermissions.js";
 
 const fieldClassName =
-  "mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-3 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100";
+  "mt-1.5 w-full rounded-lg border border-brand-bone bg-brand-mist px-3 py-2 text-xs font-semibold text-brand-ink outline-none transition focus:border-brand-violet focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
 function InlineActionError({ error }) {
   if (!error) {
@@ -24,7 +22,10 @@ function InlineActionError({ error }) {
   }
 
   return (
-    <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+    <div
+      className="mt-2.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800"
+      role="alert"
+    >
       <p>{error.message}</p>
       {error.details?.length > 0 ? (
         <ul className="mt-1 list-disc pl-5">
@@ -51,7 +52,7 @@ function AssignmentForm({ ticket, onAssign }) {
     event.preventDefault();
 
     if (!technicianId) {
-      setError({ message: "Vui lòng chọn technician.", details: [] });
+      setError({ message: "Vui lòng chọn kỹ thuật viên.", details: [] });
       return;
     }
 
@@ -68,18 +69,26 @@ function AssignmentForm({ ticket, onAssign }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-slate-200 pt-5 first:border-0 first:pt-0">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-        <UserRoundCheck className="size-4.5 text-blue-600" aria-hidden="true" />
-        Phân công technician
-      </h3>
-      <label htmlFor="assign-technician" className="mt-4 block text-xs font-semibold text-slate-700">
-        Nhân viên kỹ thuật
-      </label>
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-brand-bone pt-4 first:border-0 first:pt-0"
+    >
+      <h4 className="flex items-center gap-1.5 text-xs font-bold text-brand-ink">
+        <UserRoundCheck
+          className="size-4 text-brand-violet"
+          aria-hidden="true"
+        />
+        Kỹ Thuật Viên Phụ Trách (Assignee)
+      </h4>
       <select
         id="assign-technician"
+        aria-label="Nhân viên kỹ thuật"
         value={technicianId}
-        disabled={submitting || techniciansState.isLoading || Boolean(techniciansState.error)}
+        disabled={
+          submitting ||
+          techniciansState.isLoading ||
+          Boolean(techniciansState.error)
+        }
         onChange={(event) => {
           setTechnicianId(event.target.value);
           setError(null);
@@ -87,55 +96,64 @@ function AssignmentForm({ ticket, onAssign }) {
         className={fieldClassName}
       >
         <option value="">
-          {techniciansState.isLoading ? "Đang tải..." : "Chọn technician"}
+          {techniciansState.isLoading
+            ? "Đang tải kỹ thuật viên..."
+            : "-- Chọn kỹ thuật viên phụ trách --"}
         </option>
         {availableTechnicians.map((technician) => (
           <option key={technician._id} value={technician._id}>
             {technician.fullName}
-            {technician.department ? ` · ${technician.department}` : ""}
+            {technician.department ? ` (${technician.department})` : ""}
           </option>
         ))}
       </select>
 
-      <label htmlFor="assignment-reason" className="mt-4 block text-xs font-semibold text-slate-700">
-        Lý do phân công <span className="font-normal text-slate-500">(không bắt buộc)</span>
-      </label>
       <textarea
         id="assignment-reason"
+        aria-label="Lý do phân công"
         value={reason}
         maxLength={500}
-        rows={3}
+        rows={2}
         disabled={submitting}
         onChange={(event) => setReason(event.target.value)}
-        className={`${fieldClassName} min-h-24 resize-y`}
-        placeholder="Bổ sung thông tin cho technician..."
+        className={`${fieldClassName} resize-y font-normal`}
+        placeholder="Ghi chú bàn giao cho kỹ thuật viên (tùy chọn)..."
       />
 
       {techniciansState.error ? (
-        <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+        <div
+          className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800"
+          role="alert"
+        >
           <p>{getUserServiceErrorMessage(techniciansState.error)}</p>
           <button
             type="button"
             onClick={techniciansState.refetch}
-            className="mt-2 inline-flex min-h-9 items-center gap-2 font-semibold underline underline-offset-4"
+            className="mt-1 inline-flex items-center gap-1 font-semibold underline"
           >
-            <RefreshCw className="size-4" aria-hidden="true" />
+            <RefreshCw className="size-3" aria-hidden="true" />
             Tải lại
           </button>
         </div>
       ) : null}
-      {!techniciansState.isLoading && !techniciansState.error && availableTechnicians.length === 0 ? (
-        <p className="mt-3 text-sm text-amber-700">Không có technician hoạt động khác để phân công.</p>
+      {!techniciansState.isLoading &&
+      !techniciansState.error &&
+      availableTechnicians.length === 0 ? (
+        <p className="mt-2 text-xs text-amber-700">
+          Không có kỹ thuật viên hoạt động khác để phân công.
+        </p>
       ) : null}
       <InlineActionError error={error} />
 
       <button
         type="submit"
         disabled={submitting || !technicianId}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-ink px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-carbon disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {submitting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
-        {submitting ? "Đang phân công..." : "Xác nhận phân công"}
+        {submitting ? (
+          <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
+        ) : null}
+        {submitting ? "Đang phân công..." : "Xác Nhận Phân Công"}
       </button>
     </form>
   );
@@ -153,12 +171,18 @@ function StatusUpdateForm({ ticket, transitions, onUpdateStatus }) {
     event.preventDefault();
 
     if (!targetStatus || !note.trim()) {
-      setError({ message: "Vui lòng chọn trạng thái và nhập ghi chú.", details: [] });
+      setError({
+        message: "Vui lòng chọn trạng thái và nhập ghi chú.",
+        details: [],
+      });
       return;
     }
 
     if (resolving && resolution.trim().length < 10) {
-      setError({ message: "Cách giải quyết phải có ít nhất 10 ký tự.", details: [] });
+      setError({
+        message: "Cách giải quyết phải có ít nhất 10 ký tự.",
+        details: [],
+      });
       return;
     }
 
@@ -179,16 +203,17 @@ function StatusUpdateForm({ ticket, transitions, onUpdateStatus }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-slate-200 pt-5 first:border-0 first:pt-0">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-        <Workflow className="size-4.5 text-violet-600" aria-hidden="true" />
-        Cập nhật trạng thái
-      </h3>
-      <label htmlFor="target-status" className="mt-4 block text-xs font-semibold text-slate-700">
-        Trạng thái mới
-      </label>
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-brand-bone pt-4 first:border-0 first:pt-0"
+    >
+      <h4 className="flex items-center gap-1.5 text-xs font-bold text-brand-ink">
+        <Workflow className="size-4 text-brand-violet" aria-hidden="true" />
+        Trạng Thái Xử Lý
+      </h4>
       <select
         id="target-status"
+        aria-label="Trạng thái mới"
         value={targetStatus}
         disabled={submitting}
         onChange={(event) => {
@@ -204,53 +229,49 @@ function StatusUpdateForm({ ticket, transitions, onUpdateStatus }) {
         ))}
       </select>
 
-      <label htmlFor="status-note" className="mt-4 block text-xs font-semibold text-slate-700">
-        Ghi chú thay đổi
-      </label>
       <textarea
         id="status-note"
+        aria-label="Ghi chú thay đổi trạng thái"
         value={note}
         maxLength={500}
-        rows={3}
+        rows={2}
         disabled={submitting}
         onChange={(event) => {
           setNote(event.target.value);
           setError(null);
         }}
-        className={`${fieldClassName} min-h-24 resize-y`}
-        placeholder="Mô tả công việc đã thực hiện hoặc lý do thay đổi..."
+        className={`${fieldClassName} resize-y font-normal`}
+        placeholder="Mô tả bước xử lý vừa thực hiện..."
       />
 
       {resolving ? (
-        <>
-          <label htmlFor="status-resolution" className="mt-4 block text-xs font-semibold text-slate-700">
-            Cách giải quyết
-          </label>
-          <textarea
-            id="status-resolution"
-            value={resolution}
-            minLength={10}
-            maxLength={5000}
-            rows={5}
-            disabled={submitting}
-            onChange={(event) => {
-              setResolution(event.target.value);
-              setError(null);
-            }}
-            className={`${fieldClassName} min-h-32 resize-y`}
-            placeholder="Nhập chi tiết cách đã khắc phục sự cố..."
-          />
-        </>
+        <textarea
+          id="status-resolution"
+          aria-label="Cách giải quyết"
+          value={resolution}
+          minLength={10}
+          maxLength={5000}
+          rows={3}
+          disabled={submitting}
+          onChange={(event) => {
+            setResolution(event.target.value);
+            setError(null);
+          }}
+          className={`${fieldClassName} resize-y font-normal`}
+          placeholder="Nhập chi tiết giải pháp khắc phục sự cố (tối thiểu 10 ký tự)..."
+        />
       ) : null}
 
       <InlineActionError error={error} />
       <button
         type="submit"
         disabled={submitting || !targetStatus || !note.trim()}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white transition hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-violet px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-violet/90 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {submitting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
-        {submitting ? "Đang cập nhật..." : "Cập nhật trạng thái"}
+        {submitting ? (
+          <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
+        ) : null}
+        {submitting ? "Đang cập nhật..." : "Cập Nhật Trạng Thái"}
       </button>
     </form>
   );
@@ -265,7 +286,10 @@ function ResolutionForm({ ticket, onUpdateResolution }) {
     event.preventDefault();
 
     if (resolution.trim().length < 10) {
-      setError({ message: "Cách giải quyết phải có ít nhất 10 ký tự.", details: [] });
+      setError({
+        message: "Cách giải quyết phải có ít nhất 10 ký tự.",
+        details: [],
+      });
       return;
     }
 
@@ -282,22 +306,25 @@ function ResolutionForm({ ticket, onUpdateResolution }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-slate-200 pt-5 first:border-0 first:pt-0">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-        <Save className="size-4.5 text-emerald-600" aria-hidden="true" />
-        Cách giải quyết
-      </h3>
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-brand-bone pt-4 first:border-0 first:pt-0"
+    >
+      <h4 className="flex items-center gap-1.5 text-xs font-bold text-brand-ink">
+        <Save className="size-4 text-brand-emerald" aria-hidden="true" />
+        Cập Nhật Giải Pháp (Resolution)
+      </h4>
       <textarea
         value={resolution}
         minLength={10}
         maxLength={5000}
-        rows={5}
+        rows={3}
         disabled={submitting}
         onChange={(event) => {
           setResolution(event.target.value);
           setError(null);
         }}
-        className={`${fieldClassName} min-h-32 resize-y`}
+        className={`${fieldClassName} resize-y font-normal`}
         aria-label="Nội dung cách giải quyết"
         placeholder="Ghi lại các bước kiểm tra và khắc phục..."
       />
@@ -305,10 +332,12 @@ function ResolutionForm({ ticket, onUpdateResolution }) {
       <button
         type="submit"
         disabled={submitting || resolution.trim().length < 10}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-white px-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-brand-emerald bg-white px-3 py-2 text-xs font-semibold text-brand-emerald transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {submitting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
-        {submitting ? "Đang lưu..." : "Lưu cách giải quyết"}
+        {submitting ? (
+          <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
+        ) : null}
+        {submitting ? "Đang lưu..." : "Lưu Cách Giải Quyết"}
       </button>
     </form>
   );
@@ -330,16 +359,12 @@ function TicketActionPanel({
   const hasTerminalActions = permissions.canCancel || permissions.canClose;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-bold text-slate-900">Thao tác</h2>
-      <p className="mt-1 text-xs leading-5 text-slate-500">
-        Chỉ các thao tác phù hợp với vai trò và trạng thái hiện tại được hiển thị.
-      </p>
+    <section className="border-b border-brand-bone p-5">
+      <h3 className="text-[11px] font-bold tracking-wider text-brand-slate uppercase">
+        Thuộc Tính & Điều Phối Ticket
+      </h3>
 
-      <div className="mt-5 space-y-5">
-        {permissions.canAssign ? (
-          <AssignmentForm ticket={ticket} onAssign={onAssign} />
-        ) : null}
+      <div className="mt-3 space-y-4">
         {permissions.canUpdateStatus ? (
           <StatusUpdateForm
             ticket={ticket}
@@ -347,35 +372,40 @@ function TicketActionPanel({
             onUpdateStatus={onUpdateStatus}
           />
         ) : null}
+        {permissions.canAssign ? (
+          <AssignmentForm ticket={ticket} onAssign={onAssign} />
+        ) : null}
         {permissions.canEditResolution ? (
-          <ResolutionForm ticket={ticket} onUpdateResolution={onUpdateResolution} />
+          <ResolutionForm
+            ticket={ticket}
+            onUpdateResolution={onUpdateResolution}
+          />
         ) : null}
 
         {hasTerminalActions ? (
-          <div className="border-t border-slate-200 pt-5">
-            <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-              <AlertTriangle className="size-4.5 text-red-600" aria-hidden="true" />
-              Xác nhận ticket
-            </h3>
-            <div className="mt-3 space-y-3">
+          <div className="border-t border-brand-bone pt-4">
+            <h4 className="mb-2.5 text-xs font-bold text-brand-ink">
+              Hoàn Tất / Đóng Yêu Cầu
+            </h4>
+            <div className="space-y-2">
               {permissions.canClose ? (
                 <button
                   type="button"
                   onClick={onRequestClose}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-emerald px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-emerald/90"
                 >
-                  <CheckCircle2 className="size-4" aria-hidden="true" />
-                  Đóng ticket
+                  <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                  Xác Nhận Đóng Ticket
                 </button>
               ) : null}
               {permissions.canCancel ? (
                 <button
                   type="button"
                   onClick={onRequestCancel}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50/50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
                 >
-                  <AlertTriangle className="size-4" aria-hidden="true" />
-                  Hủy ticket
+                  <AlertTriangle className="size-3.5" aria-hidden="true" />
+                  Hủy Ticket Này
                 </button>
               ) : null}
             </div>
@@ -383,8 +413,8 @@ function TicketActionPanel({
         ) : null}
 
         {!hasWorkflowActions && !hasTerminalActions ? (
-          <p className="rounded-lg bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-600">
-            Không có thao tác nào khả dụng ở trạng thái hiện tại.
+          <p className="rounded-lg bg-brand-mist px-3 py-2.5 text-xs text-brand-slate">
+            Ticket hiện đã khóa thao tác hoặc hoàn tất quy trình SLA.
           </p>
         ) : null}
       </div>

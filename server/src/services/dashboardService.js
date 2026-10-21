@@ -202,6 +202,37 @@ function getVietnamDateRange(referenceDate) {
   };
 }
 
+function getDateRangeFromKeys(startKey, endExclusiveKey) {
+  return {
+    startDate: new Date(`${startKey}T00:00:00+07:00`),
+    endExclusiveDate: new Date(`${endExclusiveKey}T00:00:00+07:00`),
+  };
+}
+
+function getTechnicianDashboardRanges(referenceDate) {
+  const todayKey = getDateKeyInTimeZone(referenceDate, DASHBOARD_TIME_ZONE);
+  const utcDay = new Date(`${todayKey}T00:00:00Z`).getUTCDay();
+  const daysSinceMonday = utcDay === 0 ? 6 : utcDay - 1;
+  const weekStartKey = shiftCalendarDateKey(todayKey, -daysSinceMonday);
+  const monthStartKey = `${todayKey.slice(0, 7)}-01`;
+  const monthStartDate = new Date(`${monthStartKey}T00:00:00Z`);
+  const nextMonthStartKey = new Date(
+    Date.UTC(
+      monthStartDate.getUTCFullYear(),
+      monthStartDate.getUTCMonth() + 1,
+      1,
+    ),
+  )
+    .toISOString()
+    .slice(0, 10);
+
+  return {
+    today: getDateRangeFromKeys(todayKey, shiftCalendarDateKey(todayKey, 1)),
+    week: getDateRangeFromKeys(weekStartKey, shiftCalendarDateKey(todayKey, 1)),
+    month: getDateRangeFromKeys(monthStartKey, nextMonthStartKey),
+  };
+}
+
 function getTicketSnapshot() {
   return Ticket.aggregate([
     {
@@ -272,6 +303,14 @@ function getTicketCreationTrend(range) {
         value: { $sum: 1 },
       },
     },
+    { $sort: { _id: 1 } },
+  ]);
+}
+
+function getTicketResolutionTrend(range) {
+  return Ticket.aggregate([
+    { $match: { status: { $in: COMPLETED_STATUSES }, resolvedAt: { $gte: range.startDate, $lt: range.endExclusiveDate } } },
+    { $group: { _id: { $dateToString: { date: "$resolvedAt", format: "%Y-%m-%d", timezone: DASHBOARD_TIME_ZONE } }, value: { $sum: 1 } } },
     { $sort: { _id: 1 } },
   ]);
 }
@@ -444,6 +483,7 @@ export async function getAdminDashboard(referenceDate = new Date()) {
   const [
     snapshotResult,
     creationTrend,
+    resolutionTrend,
     resolutionResult,
     categories,
     technicianPerformance,
@@ -451,6 +491,7 @@ export async function getAdminDashboard(referenceDate = new Date()) {
   ] = await Promise.all([
     getTicketSnapshot(),
     getTicketCreationTrend(range),
+    getTicketResolutionTrend(range),
     getResolutionStatistics(),
     Category.find().select("name slug").sort({ name: 1, _id: 1 }).lean(),
     getTechnicianPerformance(),
@@ -471,6 +512,7 @@ export async function getAdminDashboard(referenceDate = new Date()) {
       timeZone: DASHBOARD_TIME_ZONE,
     },
   );
+  const ticketsResolvedLast7Days = buildLastNDaysSeries(resolutionTrend, { now: normalizedReferenceDate, days: 7, timeZone: DASHBOARD_TIME_ZONE });
 
   return {
     generatedAt: normalizedReferenceDate,
@@ -493,9 +535,182 @@ export async function getAdminDashboard(referenceDate = new Date()) {
       ),
       ticketsByStatus,
       ticketsCreatedLast7Days,
+      ticketsResolvedLast7Days,
       technicianPerformance,
     },
     latestTickets,
+  };
+}
+
+const TECHNICIAN_ACTIVE_STATUSES = Object.freeze([
+  "assigned",
+  "in_progress",
+  "waiting_user",
+]);
+
+const TECHNICIAN_PRIORITY_WEIGHT = Object.freeze({
+  urgent: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+});
+
+function serializeTechnicianWorkTicket(ticket) {
+  return {
+    id: ticket._id,
+    ticketCode: ticket.ticketCode,
+    title: ticket.title,
+    priority: ticket.priority,
+    status: ticket.status,
+    createdAt: ticket.createdAt,
+    lastActivityAt: ticket.lastActivityAt,
+    requester: ticket.createdBy
+      ? { id: ticket.createdBy._id, fullName: ticket.createdBy.fullName }
+      : null,
+  };
+}
+
+export async function getTechnicianDashboard(technicianId, referenceDate = new Date()) {
+  const normalizedReferenceDate =
+    referenceDate instanceof Date ? new Date(referenceDate) : new Date(referenceDate);
+
+  if (Number.isNaN(normalizedReferenceDate.getTime())) {
+    throw new TypeError("Ngày tham chiếu dashboard không hợp lệ.");
+  }
+
+  const ranges = getTechnicianDashboardRanges(normalizedReferenceDate);
+  const assignedTo = technicianId;
+  const completedThisWeekFilter = {
+    assignedTo,
+    status: { $in: COMPLETED_STATUSES },
+    resolvedAt: { $gte: ranges.week.startDate, $lt: ranges.week.endExclusiveDate },
+  };
+  const monthlyCompletedFilter = {
+    assignedTo,
+    status: { $in: COMPLETED_STATUSES },
+    resolvedAt: { $gte: ranges.month.startDate, $lt: ranges.month.endExclusiveDate },
+  };
+
+  const [
+    assignedTickets,
+    assignedToday,
+    inProgressTickets,
+    waitingUserTickets,
+    urgentTickets,
+    completedThisWeek,
+    assignedThisMonth,
+    completedThisMonth,
+    workTickets,
+  ] = await Promise.all([
+    Ticket.countDocuments({ assignedTo, status: "assigned" }),
+    Ticket.countDocuments({
+      assignedTo,
+      assignedAt: { $gte: ranges.today.startDate, $lt: ranges.today.endExclusiveDate },
+    }),
+    Ticket.countDocuments({ assignedTo, status: "in_progress" }),
+    Ticket.countDocuments({ assignedTo, status: "waiting_user" }),
+    Ticket.countDocuments({
+      assignedTo,
+      status: { $in: TECHNICIAN_ACTIVE_STATUSES },
+      priority: "urgent",
+    }),
+    Ticket.countDocuments(completedThisWeekFilter),
+    Ticket.countDocuments({
+      assignedTo,
+      assignedAt: { $gte: ranges.month.startDate, $lt: ranges.month.endExclusiveDate },
+    }),
+    Ticket.countDocuments(monthlyCompletedFilter),
+    Ticket.find({ assignedTo, status: { $in: TECHNICIAN_ACTIVE_STATUSES } })
+      .select("ticketCode title priority status createdAt lastActivityAt createdBy")
+      .populate({ path: "createdBy", select: "fullName" })
+      .sort({ lastActivityAt: -1, _id: -1 })
+      .limit(30)
+      .lean(),
+  ]);
+
+  const completionRate =
+    assignedThisMonth > 0
+      ? Math.round((completedThisMonth / assignedThisMonth) * 100)
+      : 0;
+  const priorityWorkTickets = workTickets
+    .sort(
+      (left, right) =>
+        TECHNICIAN_PRIORITY_WEIGHT[left.priority] -
+          TECHNICIAN_PRIORITY_WEIGHT[right.priority] ||
+        new Date(right.lastActivityAt).getTime() -
+          new Date(left.lastActivityAt).getTime(),
+    )
+    .slice(0, 5)
+    .map(serializeTechnicianWorkTicket);
+
+  return {
+    generatedAt: normalizedReferenceDate,
+    timeZone: DASHBOARD_TIME_ZONE,
+    summary: {
+      assignedTickets,
+      assignedToday,
+      inProgressTickets,
+      waitingUserTickets,
+      urgentTickets,
+      completedThisWeek,
+      assignedThisMonth,
+      completedThisMonth,
+      completionRate,
+    },
+    workTickets: priorityWorkTickets,
+  };
+}
+
+export async function getUserDashboard(userId, referenceDate = new Date()) {
+  const createdBy = userId;
+  const [summaryRows, recentTickets] = await Promise.all([
+    Ticket.aggregate([
+      { $match: { createdBy } },
+      {
+        $group: {
+          _id: null,
+          totalTickets: { $sum: 1 },
+          processingTickets: {
+            $sum: { $cond: [{ $in: ["$status", PROCESSING_STATUSES] }, 1, 0] },
+          },
+          waitingUserTickets: {
+            $sum: { $cond: [{ $eq: ["$status", "waiting_user"] }, 1, 0] },
+          },
+          completedTickets: {
+            $sum: { $cond: [{ $in: ["$status", COMPLETED_STATUSES] }, 1, 0] },
+          },
+        },
+      },
+      { $project: { _id: 0 } },
+    ]),
+    Ticket.find({ createdBy })
+      .select("ticketCode title category priority status assignedTo createdAt lastActivityAt")
+      .populate({ path: "category", select: "name slug" })
+      .populate({ path: "assignedTo", select: "fullName" })
+      .sort({ lastActivityAt: -1, _id: -1 })
+      .limit(5)
+      .lean(),
+  ]);
+  const summary = summaryRows[0] ?? {};
+
+  return {
+    generatedAt: referenceDate,
+    timeZone: DASHBOARD_TIME_ZONE,
+    summary: {
+      totalTickets: Number(summary.totalTickets ?? 0),
+      processingTickets: Number(summary.processingTickets ?? 0),
+      waitingUserTickets: Number(summary.waitingUserTickets ?? 0),
+      completedTickets: Number(summary.completedTickets ?? 0),
+    },
+    recentTickets: recentTickets.map((ticket) => ({
+      ...ticket,
+      category: ticket.category
+        ? { _id: ticket.category._id, name: ticket.category.name, slug: ticket.category.slug }
+        : null,
+      assignedTo: ticket.assignedTo
+        ? { _id: ticket.assignedTo._id, fullName: ticket.assignedTo.fullName }
+        : null,
+    })),
   };
 }
 

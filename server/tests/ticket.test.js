@@ -103,6 +103,36 @@ test("validateTicketQuery từ chối page vượt giới hạn an toàn", async
   assert.equal(error.statusCode, 400);
 });
 
+test("validateTicketQuery hỗ trợ lọc nhiều trạng thái cho danh sách kỹ thuật viên", async () => {
+  const request = {
+    query: {
+      statuses: "in_progress,waiting_user,in_progress",
+      page: "1",
+      limit: "10",
+    },
+  };
+
+  const error = await runMiddleware(validateTicketQuery, request);
+
+  assert.equal(error, undefined);
+  assert.deepEqual(request.ticketQuery.statuses, [
+    "in_progress",
+    "waiting_user",
+  ]);
+  assert.equal(request.ticketQuery.status, null);
+});
+
+test("validateTicketQuery từ chối trạng thái không hợp lệ trong danh sách", async () => {
+  const request = {
+    query: { statuses: "assigned,unknown" },
+  };
+
+  const error = await runMiddleware(validateTicketQuery, request);
+
+  assert.equal(error.statusCode, 400);
+  assert.match(error.details.join(" "), /Danh sách trạng thái lọc không hợp lệ/);
+});
+
 test("validateStatusUpdate không bỏ qua resolution sai ngữ cảnh", async () => {
   const request = {
     body: {

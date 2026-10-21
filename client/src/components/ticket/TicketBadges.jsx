@@ -1,88 +1,95 @@
 const STATUS_STYLES = {
   pending: {
-    label: "Đang chờ",
-    classes: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    label: "Mới Tiếp Nhận",
+    classes:
+      "bg-brand-mist text-brand-blue border border-brand-blue/30 font-semibold",
   },
   assigned: {
-    label: "Đã phân công",
-    classes: "bg-blue-50 text-blue-700 ring-blue-600/20",
+    label: "Đã Phân Công",
+    classes: "bg-blue-50 text-brand-blue border border-blue-200 font-semibold",
   },
   in_progress: {
-    label: "Đang xử lý",
-    classes: "bg-violet-50 text-violet-700 ring-violet-600/20",
+    label: "Đang Xử Lý",
+    classes:
+      "bg-purple-50 text-brand-violet border border-purple-200 font-semibold",
   },
   waiting_user: {
-    label: "Chờ người dùng",
-    classes: "bg-orange-50 text-orange-700 ring-orange-600/20",
+    label: "Chờ User",
+    classes:
+      "bg-brand-mist text-brand-slate border border-dashed border-brand-ash font-medium",
   },
   resolved: {
-    label: "Đã giải quyết",
-    classes: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    label: "Đã Xong",
+    classes:
+      "bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold",
   },
   closed: {
-    label: "Đã đóng",
-    classes: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    label: "Đã Đóng",
+    classes:
+      "bg-slate-100 text-slate-700 border border-slate-200 font-semibold",
   },
   cancelled: {
-    label: "Đã hủy",
-    classes: "bg-red-50 text-red-700 ring-red-600/20",
+    label: "Đã Hủy",
+    classes: "bg-red-50 text-red-700 border border-red-200 font-semibold",
   },
 };
 
 const PRIORITY_STYLES = {
-  low: {
-    label: "Thấp",
-    classes: "bg-slate-100 text-slate-700 ring-slate-500/20",
-  },
-  medium: {
-    label: "Trung bình",
-    classes: "bg-blue-50 text-blue-700 ring-blue-600/20",
+  urgent: {
+    label: "P1 - Khẩn Cấp",
+    classes: "bg-red-100 text-red-700 border border-red-200 font-semibold",
+    dot: "w-1.5 h-1.5 rounded-full bg-red-600 pulse-sla",
   },
   high: {
-    label: "Cao",
-    classes: "bg-orange-50 text-orange-700 ring-orange-600/20",
+    label: "P2 - Cao",
+    classes:
+      "bg-orange-100 text-orange-700 border border-orange-200 font-semibold",
+    dot: "w-1.5 h-1.5 rounded-full bg-orange-600",
   },
-  urgent: {
-    label: "Khẩn cấp",
-    classes: "bg-red-50 text-red-700 ring-red-600/20",
+  medium: {
+    label: "P3 - Vừa",
+    classes:
+      "bg-yellow-100 text-yellow-800 border border-yellow-200 font-medium",
+    dot: null,
+  },
+  low: {
+    label: "P4 - Thấp",
+    classes: "bg-slate-100 text-slate-600 border border-slate-200 font-medium",
+    dot: null,
   },
 };
-
-function Badge({ label, classes }) {
-  return (
-    <span
-      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${classes}`}
-    >
-      {label}
-    </span>
-  );
-}
 
 function TicketStatusBadge({ status, label }) {
   const presentation = STATUS_STYLES[status] ?? {
     label: label || status || "Không xác định",
-    classes: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    classes: "bg-brand-mist text-brand-slate border border-brand-bone font-medium",
   };
 
   return (
-    <Badge
-      label={label || presentation.label}
-      classes={presentation.classes}
-    />
+    <span
+      className={`inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-[11px] ${presentation.classes}`}
+    >
+      {label || presentation.label}
+    </span>
   );
 }
 
 function TicketPriorityBadge({ priority, label }) {
   const presentation = PRIORITY_STYLES[priority] ?? {
     label: label || priority || "Không xác định",
-    classes: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    classes: "bg-slate-100 text-slate-600 border border-slate-200 font-medium",
+    dot: null,
   };
 
   return (
-    <Badge
-      label={label || presentation.label}
-      classes={presentation.classes}
-    />
+    <span
+      className={`inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[11px] ${presentation.classes}`}
+    >
+      {presentation.dot ? (
+        <span className={presentation.dot} aria-hidden="true" />
+      ) : null}
+      {label || presentation.label}
+    </span>
   );
 }
 

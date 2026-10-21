@@ -46,6 +46,7 @@ function isValidDashboard(dashboard) {
     ticketsByCategory,
     ticketsByStatus,
     ticketsCreatedLast7Days,
+    ticketsResolvedLast7Days,
     technicianPerformance,
   } = dashboard.charts;
 
@@ -62,6 +63,10 @@ function isValidDashboard(dashboard) {
       ticketsCreatedLast7Days.every((item) =>
         isValidSeriesItem(item, ["date", "name"], ["value"]),
       ) &&
+      Array.isArray(ticketsResolvedLast7Days) &&
+      ticketsResolvedLast7Days.every((item) =>
+        isValidSeriesItem(item, ["date", "name"], ["value"]),
+      ) &&
       Array.isArray(technicianPerformance) &&
       technicianPerformance.every((item) =>
         isValidSeriesItem(
@@ -70,6 +75,54 @@ function isValidDashboard(dashboard) {
           ["inProgress", "completed"],
         ),
       )
+  );
+}
+
+function isValidTechnicianDashboard(dashboard) {
+  const summary = dashboard?.summary;
+  const summaryFields = [
+    "assignedTickets",
+    "assignedToday",
+    "inProgressTickets",
+    "waitingUserTickets",
+    "urgentTickets",
+    "completedThisWeek",
+    "assignedThisMonth",
+    "completedThisMonth",
+    "completionRate",
+  ];
+
+  return Boolean(
+    dashboard &&
+      typeof dashboard.generatedAt === "string" &&
+      !Number.isNaN(new Date(dashboard.generatedAt).getTime()) &&
+      typeof dashboard.timeZone === "string" &&
+      summary &&
+      summaryFields.every((field) => isNonNegativeNumber(summary[field])) &&
+      Array.isArray(dashboard.workTickets) &&
+      dashboard.workTickets.every(
+        (ticket) =>
+          ticket &&
+          typeof ticket.id === "string" &&
+          typeof ticket.ticketCode === "string" &&
+          typeof ticket.title === "string" &&
+          typeof ticket.priority === "string" &&
+          typeof ticket.status === "string" &&
+          typeof ticket.createdAt === "string",
+      ),
+  );
+}
+
+function isValidUserDashboard(dashboard) {
+  const summary = dashboard?.summary;
+  return Boolean(
+    dashboard &&
+      typeof dashboard.generatedAt === "string" &&
+      summary &&
+      ["totalTickets", "processingTickets", "waitingUserTickets", "completedTickets"].every(
+        (field) => isNonNegativeNumber(summary[field]),
+      ) &&
+      Array.isArray(dashboard.recentTickets),
   );
 }
 
@@ -90,6 +143,24 @@ export async function getAdminDashboard({ signal } = {}) {
   return dashboard;
 }
 
+export async function getTechnicianDashboard({ signal } = {}) {
+  const response = await axiosClient.get("/dashboard/technician", { signal });
+  const dashboard = response.data?.data;
+
+  if (!isValidTechnicianDashboard(dashboard)) {
+    throw createInvalidResponseError();
+  }
+
+  return dashboard;
+}
+
+export async function getUserDashboard({ signal } = {}) {
+  const response = await axiosClient.get("/dashboard/user", { signal });
+  const dashboard = response.data?.data;
+  if (!isValidUserDashboard(dashboard)) throw createInvalidResponseError();
+  return dashboard;
+}
+
 export function getDashboardErrorMessage(error) {
   if (error?.code === "ECONNABORTED") {
     return "Máy chủ phản hồi quá lâu. Vui lòng thử lại.";
@@ -104,7 +175,7 @@ export function getDashboardErrorMessage(error) {
   }
 
   if (error.response.status === 403) {
-    return "Tài khoản của bạn không có quyền xem dashboard quản trị.";
+    return "Tài khoản của bạn không có quyền xem dashboard này.";
   }
 
   if (error.response.status >= 500) {

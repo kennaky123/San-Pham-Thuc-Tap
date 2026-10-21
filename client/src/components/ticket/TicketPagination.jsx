@@ -37,34 +37,30 @@ function TicketPagination({ pagination, onPageChange }) {
   const firstItem = (page - 1) * limit + 1;
   const lastItem = Math.min(page * limit, totalItems);
   const visiblePages = getVisiblePages(page, totalPages);
-  const navigationButtonClasses =
-    "inline-flex size-11 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
     <nav
-      className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-3 border-t border-brand-bone bg-brand-mist/40 px-4 py-3 text-xs text-brand-slate sm:flex-row sm:items-center sm:justify-between"
       aria-label="Phân trang danh sách ticket"
     >
-      <p className="text-center text-sm text-slate-600 sm:text-left">
-        Hiển thị <span className="font-semibold text-slate-800">{firstItem}</span>
-        –<span className="font-semibold text-slate-800">{lastItem}</span> trong
-        tổng số <span className="font-semibold text-slate-800">{totalItems}</span>
+      <p className="text-center sm:text-left">
+        Hiển thị <span className="font-semibold text-brand-ink">{firstItem}</span>
+        –<span className="font-semibold text-brand-ink">{lastItem}</span> trên tổng
+        số <span className="font-semibold text-brand-ink">{totalItems}</span>{" "}
+        ticket
       </p>
 
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-1.5">
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={!hasPreviousPage}
-          className={navigationButtonClasses}
+          className="inline-flex items-center gap-1 rounded-md border border-brand-bone bg-white px-2.5 py-1 font-medium text-brand-ink transition hover:bg-brand-mist disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Trang trước"
         >
-          <ChevronLeft className="size-4" aria-hidden="true" />
+          <ChevronLeft className="size-3.5" aria-hidden="true" />
+          Trước
         </button>
-
-        <span className="min-w-24 text-center text-sm font-medium text-slate-700 sm:hidden">
-          Trang {page}/{totalPages}
-        </span>
 
         <div className="hidden items-center gap-1 sm:flex">
           {visiblePages.map((item) =>
@@ -74,10 +70,10 @@ function TicketPagination({ pagination, onPageChange }) {
                 type="button"
                 onClick={() => onPageChange(item)}
                 className={[
-                  "inline-flex size-11 items-center justify-center rounded-lg text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+                  "inline-flex h-7 min-w-7 items-center justify-center rounded-md px-2 text-xs font-bold transition",
                   item === page
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                    ? "bg-brand-ink text-white"
+                    : "border border-brand-bone bg-white text-brand-ink hover:bg-brand-mist",
                 ].join(" ")}
                 aria-label={`Trang ${item}`}
                 aria-current={item === page ? "page" : undefined}
@@ -87,7 +83,7 @@ function TicketPagination({ pagination, onPageChange }) {
             ) : (
               <span
                 key={item}
-                className="inline-flex size-8 items-center justify-center text-slate-400"
+                className="inline-flex h-7 items-center justify-center px-1 text-brand-ash"
                 aria-hidden="true"
               >
                 …
@@ -100,10 +96,11 @@ function TicketPagination({ pagination, onPageChange }) {
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={!hasNextPage}
-          className={navigationButtonClasses}
+          className="inline-flex items-center gap-1 rounded-md border border-brand-bone bg-white px-2.5 py-1 font-medium text-brand-ink transition hover:bg-brand-mist disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Trang sau"
         >
-          <ChevronRight className="size-4" aria-hidden="true" />
+          Sau
+          <ChevronRight className="size-3.5" aria-hidden="true" />
         </button>
       </div>
     </nav>

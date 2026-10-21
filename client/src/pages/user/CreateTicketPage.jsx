@@ -9,13 +9,15 @@ const SUPPORT_TIPS = [
   },
   {
     icon: Image,
-    title: "Đính kèm ảnh phù hợp",
-    description: "Ảnh chụp lỗi giúp kỹ thuật viên xác định nguyên nhân nhanh hơn.",
+    title: "Đính kèm ảnh chụp màn hình",
+    description:
+      "Ảnh chụp lỗi giúp kỹ thuật viên xác định nguyên nhân nhanh hơn.",
   },
   {
     icon: ShieldCheck,
     title: "Không gửi dữ liệu nhạy cảm",
-    description: "Che mật khẩu, mã OTP và thông tin riêng tư trước khi tải ảnh.",
+    description:
+      "Che mật khẩu, mã OTP và thông tin riêng tư trước khi tải ảnh.",
   },
 ];
 
@@ -23,46 +25,60 @@ function CreateTicketPage() {
   return (
     <section aria-labelledby="create-ticket-title">
       <div className="mb-6">
-        <p className="text-xs font-semibold tracking-wider text-blue-700 uppercase">
-          Trung tâm hỗ trợ
+        <p className="text-[11px] font-bold tracking-wider text-brand-violet uppercase">
+          Cổng dịch vụ CNTT — DeskPro IT
         </p>
         <h1
           id="create-ticket-title"
-          className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
+          className="mt-1 font-display text-2xl font-extrabold tracking-tight text-brand-ink sm:text-3xl"
         >
-          Tạo yêu cầu hỗ trợ
+          Tạo Ticket Yêu Cầu Hỗ Trợ Mới
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          Cung cấp thông tin sự cố để bộ phận kỹ thuật tiếp nhận và hỗ trợ bạn
-          nhanh chóng.
+        <p className="mt-1.5 max-w-2xl text-xs leading-5 text-brand-slate sm:text-sm">
+          Hệ thống sẽ tự động phân tuyến đến kỹ thuật viên phù hợp và kích hoạt
+          cam kết SLA ngay sau khi gửi.
         </p>
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <TicketRequestForm />
 
-        <aside className="space-y-4 xl:sticky xl:top-24" aria-label="Hướng dẫn tạo yêu cầu">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <aside
+          className="space-y-4 xl:sticky xl:top-20"
+          aria-label="Hướng dẫn tạo yêu cầu"
+        >
+          <div className="rounded-xl border border-brand-bone bg-white p-5 shadow-xs">
             <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-                <Clock3 className="size-5" aria-hidden="true" />
+              <span className="flex size-9 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet">
+                <Clock3 className="size-4.5" aria-hidden="true" />
               </span>
               <div>
-                <h2 className="text-sm font-bold text-slate-900">Lưu ý trước khi gửi</h2>
-                <p className="mt-0.5 text-xs text-slate-500">Giúp yêu cầu được xử lý nhanh hơn</p>
+                <h2 className="font-display text-sm font-bold text-brand-ink">
+                  Lưu ý trước khi gửi
+                </h2>
+                <p className="text-xs text-brand-slate">
+                  Giúp yêu cầu được xử lý nhanh hơn
+                </p>
               </div>
             </div>
 
-            <ul className="mt-5 space-y-5">
+            <ul className="mt-4 space-y-4">
               {SUPPORT_TIPS.map((tip) => {
                 const Icon = tip.icon;
 
                 return (
-                  <li key={tip.title} className="flex items-start gap-3">
-                    <Icon className="mt-0.5 size-4.5 shrink-0 text-blue-600" aria-hidden="true" />
+                  <li key={tip.title} className="flex items-start gap-2.5">
+                    <Icon
+                      className="mt-0.5 size-4 shrink-0 text-brand-violet"
+                      aria-hidden="true"
+                    />
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">{tip.title}</p>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">{tip.description}</p>
+                      <p className="text-xs font-bold text-brand-ink">
+                        {tip.title}
+                      </p>
+                      <p className="mt-0.5 text-xs leading-5 text-brand-slate">
+                        {tip.description}
+                      </p>
                     </div>
                   </li>
                 );
@@ -70,12 +86,24 @@ function CreateTicketPage() {
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-950">
-            <p className="font-semibold">Sự cố khẩn cấp?</p>
-            <p className="mt-1.5 text-xs leading-5 text-blue-800">
-              Chọn mức “Khẩn cấp” khi hệ thống quan trọng ngừng hoạt động hoặc
-              ảnh hưởng đến nhiều người dùng.
+          <div className="rounded-xl border border-brand-violet/20 bg-brand-violet/5 p-5 text-xs text-brand-ink">
+            <p className="font-display font-bold text-brand-violet">
+              Cam kết SLA theo mức độ ưu tiên
             </p>
+            <ul className="mt-2 space-y-1.5 text-brand-slate">
+              <li>
+                • <strong className="text-red-600">P1 - Khẩn cấp:</strong> Phản
+                hồi &lt; 15 phút, xử lý &lt; 2 giờ
+              </li>
+              <li>
+                • <strong className="text-orange-600">P2 - Cao:</strong> Phản
+                hồi &lt; 30 phút, xử lý &lt; 4 giờ
+              </li>
+              <li>
+                • <strong className="text-brand-blue">P3 - Vừa:</strong> Xử lý
+                trong 8 giờ làm việc
+              </li>
+            </ul>
           </div>
         </aside>
       </div>

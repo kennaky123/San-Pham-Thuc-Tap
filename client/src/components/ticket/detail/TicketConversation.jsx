@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   LoaderCircle,
   LockKeyhole,
@@ -6,13 +5,15 @@ import {
   RefreshCw,
   Send,
 } from "lucide-react";
+import { useState } from "react";
+import { CANNED_RESPONSES } from "../../../data/itsmData.js";
 import { getTicketActionError } from "../../../services/ticketService.js";
 import { formatTicketDateTime } from "../../../utils/ticketPermissions.js";
 
 const ROLE_LABELS = {
-  user: "Người dùng",
-  technician: "Kỹ thuật viên",
-  admin: "Quản trị viên",
+  user: "Người yêu cầu",
+  technician: "Kỹ thuật viên IT",
+  admin: "Quản trị viên IT",
 };
 
 function getInitials(name) {
@@ -29,47 +30,49 @@ function CommentItem({ comment }) {
   return (
     <li
       className={[
-        "rounded-xl border p-4",
+        "rounded-xl border p-4 shadow-2xs transition-all",
         comment.isInternal
-          ? "border-amber-200 bg-amber-50"
-          : "border-slate-200 bg-white",
+          ? "border-amber-300 bg-amber-50/70"
+          : "border-brand-bone bg-white",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3">
-        <span
-          className={[
-            "flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-            comment.isInternal
-              ? "bg-amber-200 text-amber-900"
-              : "bg-blue-100 text-blue-800",
-          ].join(" ")}
-          aria-hidden="true"
-        >
-          {getInitials(comment.sender.fullName)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <p className="text-sm font-bold text-slate-900">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span
+            className={[
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white",
+              comment.isInternal ? "bg-amber-600" : "bg-brand-violet",
+            ].join(" ")}
+            aria-hidden="true"
+          >
+            {getInitials(comment.sender.fullName)}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-brand-ink">
               {comment.sender.fullName}
-            </p>
-            <span className="text-xs text-slate-500">
-              {ROLE_LABELS[comment.sender.role] ?? "Thành viên"}
             </span>
             {comment.isInternal ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/70 px-2 py-0.5 text-xs font-semibold text-amber-900">
+              <span className="inline-flex items-center gap-1 rounded bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-900 uppercase">
                 <LockKeyhole className="size-3" aria-hidden="true" />
-                Ghi chú nội bộ
+                Ghi Chú Nội Bộ IT
               </span>
-            ) : null}
+            ) : (
+              <span className="rounded bg-brand-violet/10 px-2 py-0.5 text-[10px] font-bold text-brand-violet">
+                {ROLE_LABELS[comment.sender.role] ?? "Phản Hồi Công Khai"}
+              </span>
+            )}
           </div>
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-            {comment.content}
-          </p>
-          <time className="mt-2 block text-xs text-slate-500" dateTime={comment.createdAt}>
-            {formatTicketDateTime(comment.createdAt)}
-          </time>
         </div>
+        <time
+          className="font-mono text-xs text-brand-ash"
+          dateTime={comment.createdAt}
+        >
+          {formatTicketDateTime(comment.createdAt)}
+        </time>
       </div>
+      <p className="pl-9 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-brand-ink">
+        {comment.content}
+      </p>
     </li>
   );
 }
@@ -88,8 +91,7 @@ function TicketConversation({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function submitComment() {
     const normalizedContent = content.trim();
 
     if (!normalizedContent || normalizedContent.length > 5000) {
@@ -106,7 +108,6 @@ function TicketConversation({
     try {
       await onSubmit(normalizedContent, isInternal);
       setContent("");
-      setIsInternal(false);
     } catch (requestError) {
       setSubmitError(getTicketActionError(requestError));
     } finally {
@@ -114,109 +115,207 @@ function TicketConversation({
     }
   }
 
+  async function handleSubmit(event) {
+    event.preventDefault();
+    await submitComment();
+  }
+
+  function handleKeyDown(event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      if (!submitting && content.trim().length > 0) {
+        submitComment();
+      }
+    }
+  }
+
+  function handleInsertCannedResponse(event) {
+    const idx = event.target.value;
+    if (idx === "") return;
+    const template = CANNED_RESPONSES[Number(idx)];
+    if (template) {
+      setContent((prev) => (prev ? `${prev}\n${template}` : template));
+      setSubmitError(null);
+    }
+    event.target.value = "";
+  }
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
-            <MessageSquare className="size-5 text-slate-500" aria-hidden="true" />
-            Trao đổi
+        <div className="flex items-center gap-2">
+          <MessageSquare
+            className="size-4 text-brand-violet"
+            aria-hidden="true"
+          />
+          <h2 className="font-display text-sm font-bold text-brand-ink">
+            Luồng Trao Đổi & Ghi Chú Kỹ Thuật
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Bình luận công khai và ghi chú xử lý liên quan đến ticket.
-          </p>
         </div>
         {error ? (
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600"
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-brand-violet hover:bg-brand-violet/10"
           >
-            <RefreshCw className="size-4" aria-hidden="true" />
+            <RefreshCw className="size-3.5" aria-hidden="true" />
             Thử lại
           </button>
         ) : null}
       </div>
 
       {loading ? (
-        <div className="mt-5 space-y-3" aria-label="Đang tải trao đổi">
+        <div className="space-y-3" aria-label="Đang tải trao đổi">
           {[1, 2].map((item) => (
-            <div key={item} className="h-28 animate-pulse rounded-xl bg-slate-100" />
+            <div
+              key={item}
+              className="h-24 animate-pulse rounded-xl bg-white/80"
+            />
           ))}
         </div>
       ) : null}
 
       {!loading && error ? (
-        <p className="mt-5 rounded-lg bg-red-50 px-3 py-3 text-sm text-red-800" role="alert">
+        <p
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
 
       {!loading && !error && comments?.comments.length === 0 ? (
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-8 text-center">
-          <MessageSquare className="mx-auto size-6 text-slate-400" aria-hidden="true" />
-          <p className="mt-2 text-sm font-semibold text-slate-700">Chưa có trao đổi</p>
-          <p className="mt-1 text-xs text-slate-500">Hãy gửi bình luận đầu tiên cho ticket này.</p>
+        <div className="rounded-xl border border-brand-bone bg-white px-4 py-6 text-center">
+          <p className="text-xs font-semibold text-brand-slate">
+            Chưa có phản hồi hoặc ghi chú nào trên ticket này.
+          </p>
         </div>
       ) : null}
 
       {!loading && !error && comments?.comments.length > 0 ? (
-        <>
-          {comments.pagination.hasNextPage ? (
-            <p className="mt-5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              Đang hiển thị 100 trao đổi mới nhất.
-            </p>
-          ) : null}
-          <ol className="mt-5 space-y-3">
-            {comments.comments.map((comment) => (
-              <CommentItem key={comment._id} comment={comment} />
-            ))}
-          </ol>
-        </>
+        <ol className="space-y-3">
+          {comments.comments.map((comment) => (
+            <CommentItem key={comment._id} comment={comment} />
+          ))}
+        </ol>
       ) : null}
 
+      {/* Reply Composer Box (Matches DeskPro IT View 2) */}
       {canComment ? (
-        <form onSubmit={handleSubmit} className="mt-6 border-t border-slate-200 pt-5">
-          <label htmlFor="ticket-comment" className="text-sm font-semibold text-slate-800">
-            Nội dung trao đổi
-          </label>
-          <textarea
-            id="ticket-comment"
-            value={content}
-            maxLength={5000}
-            rows={4}
-            disabled={submitting}
-            onChange={(event) => {
-              setContent(event.target.value);
-              setSubmitError(null);
-            }}
-            placeholder={
-              isInternal
-                ? "Nhập ghi chú chỉ kỹ thuật viên và Admin nhìn thấy..."
-                : "Nhập nội dung trao đổi với người liên quan..."
-            }
-            className="mt-2 min-h-28 w-full resize-y rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-100 disabled:bg-slate-100 sm:text-sm"
-          />
-          <div className="mt-1.5 flex justify-end text-xs text-slate-500">
-            {content.length}/5000
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-xl border border-brand-bone bg-white p-4 shadow-xs"
+        >
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsInternal(false)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                  !isInternal
+                    ? "bg-brand-ink text-white"
+                    : "text-brand-slate hover:bg-brand-mist"
+                }`}
+              >
+                Phản Hồi Công Khai (Gửi User)
+              </button>
+              {canCreateInternalNote ? (
+                <button
+                  type="button"
+                  onClick={() => setIsInternal(true)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                    isInternal
+                      ? " border border-amber-300 bg-amber-100 text-amber-900"
+                      : "text-brand-slate hover:bg-brand-mist"
+                  }`}
+                >
+                  <LockKeyhole className="size-3.5" aria-hidden="true" />
+                  Ghi Chú Nội Bộ (Chỉ IT Thấy)
+                </button>
+              ) : null}
+            </div>
+
+            {/* Canned Responses Dropdown */}
+            <select
+              onChange={handleInsertCannedResponse}
+              defaultValue=""
+              aria-label="Mẫu câu trả lời nhanh"
+              className="rounded-lg border border-brand-bone bg-brand-mist px-2.5 py-1 text-xs font-medium text-brand-slate outline-none hover:text-brand-ink"
+            >
+              <option value="">
+                + Mẫu câu trả lời nhanh (Canned Responses)...
+              </option>
+              <option value="0">Xác nhận đã tiếp nhận & đang kiểm tra</option>
+              <option value="1">Yêu cầu cung cấp TeamViewer / UltraViewer</option>
+              <option value="2">Thông báo đã reset mật khẩu / quyền AD</option>
+              <option value="3">Xác nhận hoàn tất & xin đánh giá CSAT</option>
+            </select>
           </div>
 
-          {canCreateInternalNote ? (
-            <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              <input
-                type="checkbox"
-                checked={isInternal}
-                disabled={submitting}
-                onChange={(event) => setIsInternal(event.target.checked)}
-                className="size-4 rounded border-amber-400 text-amber-600 focus:ring-amber-500"
-              />
-              <LockKeyhole className="size-4 shrink-0" aria-hidden="true" />
-              Gửi dưới dạng ghi chú nội bộ
-            </label>
-          ) : null}
+          <div
+            className={`overflow-hidden rounded-xl border transition-all focus-within:ring-2 ${
+              isInternal
+                ? "border-amber-300 bg-amber-50/40 focus-within:border-amber-500 focus-within:ring-amber-200"
+                : "border-brand-bone bg-brand-mist/50 focus-within:border-brand-violet focus-within:ring-brand-violet/20"
+            }`}
+          >
+            <textarea
+              id="ticket-comment"
+              value={content}
+              maxLength={5000}
+              rows={3}
+              disabled={submitting}
+              onKeyDown={handleKeyDown}
+              onChange={(event) => {
+                setContent(event.target.value);
+                setSubmitError(null);
+              }}
+              placeholder={
+                isInternal
+                  ? "Ghi chú kỹ thuật nội bộ (Người yêu cầu sẽ KHÔNG nhìn thấy nội dung này)..."
+                  : "Nhập phản hồi cho người yêu cầu (Nhấn Ctrl + Enter để gửi nhanh)..."
+              }
+              className="w-full resize-none bg-transparent p-3 text-sm text-brand-ink outline-none placeholder:text-brand-ash"
+            />
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-bone bg-white px-3 py-2">
+              <span className="text-[11px] text-brand-ash">
+                {content.length}/5000 ký tự • Nhấn{" "}
+                <kbd className="rounded bg-brand-mist px-1 py-0.5 font-mono text-[10px] text-brand-slate">
+                  Ctrl+Enter
+                </kbd>{" "}
+                để gửi
+              </span>
+              <button
+                type="submit"
+                disabled={submitting || content.trim().length === 0}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isInternal
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-brand-violet hover:bg-brand-violet/90"
+                }`}
+              >
+                {submitting ? (
+                  <LoaderCircle
+                    className="size-3.5 animate-spin"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <Send className="size-3.5" aria-hidden="true" />
+                )}
+                {submitting
+                  ? "Đang gửi..."
+                  : isInternal
+                    ? "Lưu Ghi Chú Nội Bộ"
+                    : "Gửi Phản Hồi"}
+              </button>
+            </div>
+          </div>
 
           {submitError ? (
-            <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+            <div
+              className="mt-2.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800"
+              role="alert"
+            >
               <p>{submitError.message}</p>
               {submitError.details.length > 0 ? (
                 <ul className="mt-1 list-disc pl-5">
@@ -227,29 +326,11 @@ function TicketConversation({
               ) : null}
             </div>
           ) : null}
-
-          <div className="mt-4 flex justify-end">
-            <button
-              type="submit"
-              disabled={submitting || content.trim().length === 0}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
-            >
-              {submitting ? (
-                <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Send className="size-4" aria-hidden="true" />
-              )}
-              {submitting
-                ? "Đang gửi..."
-                : isInternal
-                  ? "Lưu ghi chú nội bộ"
-                  : "Gửi bình luận"}
-            </button>
-          </div>
         </form>
       ) : (
-        <p className="mt-6 rounded-lg bg-slate-50 px-3 py-3 text-sm text-slate-600">
-          Ticket đang ở chế độ chỉ đọc hoặc vai trò của bạn không được gửi bình luận.
+        <p className="rounded-xl border border-brand-bone bg-white px-4 py-3 text-xs text-brand-slate">
+          Ticket đang ở chế độ chỉ đọc hoặc vai trò của bạn không được gửi bình
+          luận.
         </p>
       )}
     </section>

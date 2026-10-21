@@ -8,13 +8,17 @@ import UserListSkeleton from "../../components/admin/users/UserListSkeleton.jsx"
 import UserStatsGrid from "../../components/admin/users/UserStatsGrid.jsx";
 import UsersTable from "../../components/admin/users/UsersTable.jsx";
 import ConfirmActionModal from "../../components/common/ConfirmActionModal.jsx";
-import { INITIAL_ADMIN_USERS } from "../../data/adminUsers.js";
+import WorkspacePageHeader from "../../components/common/WorkspacePageHeader.jsx";
+import {
+  getAdminErrorMessage,
+  getAdminUsers,
+} from "../../services/adminService.js";
 import { normalizeSearch } from "../../utils/adminUserFormatters.js";
 
 const EMPTY_FILTERS = { search: "", status: "", role: "" };
 
 function AdminUsersPage() {
-  const [users, setUsers] = useState(INITIAL_ADMIN_USERS);
+  const [users, setUsers] = useState([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -27,21 +31,37 @@ function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 450);
-    return () => window.clearTimeout(timer);
+    const controller = new AbortController();
+    getAdminUsers({ signal: controller.signal })
+      .then(setUsers)
+      .catch((error) => {
+        if (error.code !== "ERR_CANCELED")
+          toast.error(getAdminErrorMessage(error));
+      })
+      .finally(() => setIsLoading(false));
+    return () => controller.abort();
   }, []);
 
   const filteredUsers = useMemo(() => {
     const keyword = normalizeSearch(filters.search);
     return users.filter((user) => {
-      const searchable = normalizeSearch(`${user.fullName} ${user.email} ${user.phone}`);
-      return (!keyword || searchable.includes(keyword)) && (!filters.status || user.status === filters.status) && (!filters.role || user.role === filters.role);
+      const searchable = normalizeSearch(
+        `${user.fullName} ${user.email} ${user.phone}`,
+      );
+      return (
+        (!keyword || searchable.includes(keyword)) &&
+        (!filters.status || user.status === filters.status) &&
+        (!filters.role || user.role === filters.role)
+      );
     });
   }, [filters, users]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const visibleUsers = filteredUsers.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const visibleUsers = filteredUsers.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -51,7 +71,10 @@ function AdminUsersPage() {
       locked: users.filter((user) => user.status === "locked").length,
       newThisMonth: users.filter((user) => {
         const date = new Date(user.createdAt);
-        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        return (
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        );
       }).length,
     };
   }, [users]);
@@ -67,7 +90,18 @@ function AdminUsersPage() {
 
   function saveUser(values) {
     if (formUser) {
-      setUsers((current) => current.map((item) => item.id === formUser.id ? { ...item, ...values, password: undefined, confirmPassword: undefined } : item));
+      setUsers((current) =>
+        current.map((item) =>
+          item.id === formUser.id
+            ? {
+                ...item,
+                ...values,
+                password: undefined,
+                confirmPassword: undefined,
+              }
+            : item,
+        ),
+      );
       toast.success("Đã cập nhật thông tin người dùng.");
     } else {
       const newUser = {
@@ -92,13 +126,23 @@ function AdminUsersPage() {
 
   function toggleLock(user) {
     const nextStatus = user.status === "locked" ? "active" : "locked";
-    setUsers((current) => current.map((item) => item.id === user.id ? { ...item, status: nextStatus } : item));
+    setUsers((current) =>
+      current.map((item) =>
+        item.id === user.id ? { ...item, status: nextStatus } : item,
+      ),
+    );
     setOpenMenuId(null);
-    toast.success(nextStatus === "locked" ? "Đã khóa tài khoản." : "Đã mở khóa tài khoản.");
+    toast.success(
+      nextStatus === "locked"
+        ? "Đã khóa tài khoản."
+        : "Đã mở khóa tài khoản.",
+    );
   }
 
   function confirmDelete() {
-    setUsers((current) => current.filter((user) => user.id !== deleteUser.id));
+    setUsers((current) =>
+      current.filter((user) => user.id !== deleteUser.id),
+    );
     setSelectedIds((current) => {
       const next = new Set(current);
       next.delete(deleteUser.id);
@@ -106,26 +150,46 @@ function AdminUsersPage() {
     });
     if (detailUser?.id === deleteUser.id) setDetailUser(null);
     setDeleteUser(null);
-    toast.success("Đã xóa tài khoản khỏi dữ liệu giả.");
+    toast.success("Đã xóa tài khoản khỏi danh sách.");
   }
 
   return (
     <section aria-labelledby="admin-users-title">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-wider text-blue-700 uppercase">Quản lý hệ thống</p>
-          <h1 id="admin-users-title" className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Người dùng</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Quản lý tài khoản người dùng và theo dõi hoạt động gửi yêu cầu hỗ trợ.</p>
-        </div>
-        <button type="button" onClick={() => { setFormUser(undefined); setFormOpen(true); }} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[#2563EB] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:self-auto">
-          <Plus className="size-5" aria-hidden="true" />Thêm người dùng
-        </button>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Quản trị danh mục nhân sự (dim_user_department)"
+        title="Quản lý người dùng"
+        description="Quản lý tài khoản nhân viên, trạng thái truy cập AD và lịch sử gửi yêu cầu hỗ trợ."
+        actions={
+          <button
+            type="button"
+            onClick={() => {
+              setFormUser(undefined);
+              setFormOpen(true);
+            }}
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-brand-ink px-4 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-carbon"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Thêm người dùng
+          </button>
+        }
+      />
 
       <UserStatsGrid stats={stats} />
-      <div className="mt-6"><UserFilters filters={filters} onChange={updateFilter} onReset={() => { setFilters(EMPTY_FILTERS); setPage(1); setSelectedIds(new Set()); }} /></div>
+      <div className="mt-6">
+        <UserFilters
+          filters={filters}
+          onChange={updateFilter}
+          onReset={() => {
+            setFilters(EMPTY_FILTERS);
+            setPage(1);
+            setSelectedIds(new Set());
+          }}
+        />
+      </div>
       <div className="mt-4" aria-busy={isLoading}>
-        {isLoading ? <UserListSkeleton /> : (
+        {isLoading ? (
+          <UserListSkeleton />
+        ) : (
           <UsersTable
             users={visibleUsers}
             total={filteredUsers.length}
@@ -133,23 +197,77 @@ function AdminUsersPage() {
             pageSize={pageSize}
             selectedIds={selectedIds}
             openMenuId={openMenuId}
-            onSelect={(id) => setSelectedIds((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })}
-            onSelectPage={(checked) => setSelectedIds((current) => { const next = new Set(current); visibleUsers.forEach((user) => checked ? next.add(user.id) : next.delete(user.id)); return next; })}
-            onMenuToggle={(id) => setOpenMenuId((current) => current === id ? null : id)}
+            onSelect={(id) =>
+              setSelectedIds((current) => {
+                const next = new Set(current);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              })
+            }
+            onSelectPage={(checked) =>
+              setSelectedIds((current) => {
+                const next = new Set(current);
+                visibleUsers.forEach((user) =>
+                  checked ? next.add(user.id) : next.delete(user.id),
+                );
+                return next;
+              })
+            }
+            onMenuToggle={(id) =>
+              setOpenMenuId((current) => (current === id ? null : id))
+            }
             onMenuClose={() => setOpenMenuId(null)}
-            onView={(user) => { setOpenMenuId(null); setDetailUser(user); }}
-            onEdit={(user) => { setOpenMenuId(null); setFormUser(user); setFormOpen(true); }}
+            onView={(user) => {
+              setOpenMenuId(null);
+              setDetailUser(user);
+            }}
+            onEdit={(user) => {
+              setOpenMenuId(null);
+              setFormUser(user);
+              setFormOpen(true);
+            }}
             onToggleLock={toggleLock}
-            onDelete={(user) => { setOpenMenuId(null); setDeleteUser(user); }}
+            onDelete={(user) => {
+              setOpenMenuId(null);
+              setDeleteUser(user);
+            }}
             onPageChange={setPage}
-            onPageSizeChange={(value) => { setPageSize(value); setPage(1); }}
+            onPageSizeChange={(value) => {
+              setPageSize(value);
+              setPage(1);
+            }}
           />
         )}
       </div>
 
-      {formOpen ? <UserFormModal key={formUser?.id ?? "new"} user={formUser} users={users} onClose={closeForm} onSave={saveUser} /> : null}
-      {detailUser ? <UserDetailDrawer user={users.find((user) => user.id === detailUser.id) ?? detailUser} onClose={closeDetail} /> : null}
-      {deleteUser ? <ConfirmActionModal title="Xóa tài khoản người dùng?" description={`Tài khoản ${deleteUser.fullName} sẽ bị xóa khỏi danh sách dữ liệu giả. Thao tác này không ảnh hưởng đến database.`} confirmLabel="Xóa tài khoản" submitting={false} onCancel={() => setDeleteUser(null)} onConfirm={confirmDelete} /> : null}
+      {formOpen ? (
+        <UserFormModal
+          key={formUser?.id ?? "new"}
+          user={formUser}
+          users={users}
+          onClose={closeForm}
+          onSave={saveUser}
+        />
+      ) : null}
+      {detailUser ? (
+        <UserDetailDrawer
+          user={
+            users.find((user) => user.id === detailUser.id) ?? detailUser
+          }
+          onClose={closeDetail}
+        />
+      ) : null}
+      {deleteUser ? (
+        <ConfirmActionModal
+          title="Xóa tài khoản người dùng?"
+          description={`Tài khoản ${deleteUser.fullName} sẽ bị xóa khỏi danh sách hiển thị.`}
+          confirmLabel="Xóa tài khoản"
+          submitting={false}
+          onCancel={() => setDeleteUser(null)}
+          onConfirm={confirmDelete}
+        />
+      ) : null}
     </section>
   );
 }

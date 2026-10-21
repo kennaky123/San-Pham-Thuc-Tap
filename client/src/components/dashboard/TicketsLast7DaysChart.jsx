@@ -16,10 +16,10 @@ function TrendTooltip({ active, payload, label }) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-      <p className="font-semibold text-slate-800">Ngày {label}</p>
-      <p className="mt-1 text-slate-600">
-        {formatDashboardNumber(payload[0].value)} ticket mới
+    <div className="rounded-lg border border-brand-bone bg-brand-ink px-3 py-2 text-xs text-white shadow-lg">
+      <p className="font-semibold">Ngày {label}</p>
+      <p className="mt-1 font-mono text-brand-mint">
+        {formatDashboardNumber(payload[0].value)} ticket phát sinh
       </p>
     </div>
   );
@@ -47,12 +47,16 @@ function TicketsLast7DaysChart({ data }) {
             margin={{ top: 8, right: 4, bottom: 0, left: -12 }}
             accessibilityLayer
           >
-            <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid
+              stroke="#e8e8e8"
+              strokeDasharray="3 3"
+              vertical={false}
+            />
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "#646464", fontSize: 11 }}
               interval={0}
               dy={8}
             />
@@ -60,17 +64,17 @@ function TicketsLast7DaysChart({ data }) {
               allowDecimals={false}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "#646464", fontSize: 11 }}
               width={36}
             />
             <Tooltip
               content={<TrendTooltip />}
-              cursor={{ fill: "#eff6ff" }}
+              cursor={{ fill: "#f8f9fa" }}
             />
             <Bar
               dataKey="value"
               name="Ticket mới"
-              fill="#2563eb"
+              fill="#6647f0"
               radius={[6, 6, 0, 0]}
               maxBarSize={46}
               isAnimationActive={false}

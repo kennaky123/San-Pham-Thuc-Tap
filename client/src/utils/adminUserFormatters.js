@@ -1,3 +1,5 @@
+import { clientEnv } from "../config/env.js";
+
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
   day: "2-digit",
   month: "2-digit",
@@ -30,6 +32,18 @@ export function getInitials(fullName = "") {
     .slice(-2)
     .map((word) => word[0]?.toUpperCase())
     .join("");
+}
+
+export function getAvatarUrl(avatar) {
+  if (!avatar || typeof avatar !== "string") return null;
+  if (
+    avatar.startsWith("http://") ||
+    avatar.startsWith("https://") ||
+    avatar.startsWith("data:")
+  ) {
+    return avatar;
+  }
+  return `${clientEnv.apiUrl}/auth/avatar/${avatar}`;
 }
 
 export function normalizeSearch(value = "") {

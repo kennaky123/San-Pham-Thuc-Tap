@@ -205,6 +205,8 @@ export async function listTickets(query, user) {
 
   if (query.status) {
     filter.status = query.status;
+  } else if (query.statuses?.length > 0) {
+    filter.status = { $in: query.statuses };
   }
 
   if (query.priority) {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getAdminDashboard } from "../services/dashboardService.js";
+import { REALTIME_DATA_EVENT } from "./useRealtimeUpdates.js";
 
 const INITIAL_STATE = {
   data: null,
@@ -41,6 +42,20 @@ function useAdminDashboard() {
       abortController.abort();
     };
   }, [requestVersion]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) setRequestVersion((currentVersion) => currentVersion + 1);
+    };
+    const intervalId = window.setInterval(refresh, 10_000);
+    window.addEventListener("focus", refresh);
+    window.addEventListener(REALTIME_DATA_EVENT, refresh);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener(REALTIME_DATA_EVENT, refresh);
+    };
+  }, []);
 
   const refetch = useCallback(() => {
     setState((currentState) => ({

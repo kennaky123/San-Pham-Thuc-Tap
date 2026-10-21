@@ -101,6 +101,7 @@ function buildTicketParams(query) {
   for (const field of [
     "search",
     "status",
+    "statuses",
     "priority",
     "category",
     "technician",

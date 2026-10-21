@@ -136,6 +136,11 @@ export function validateTicketQuery(request, _response, next) {
     const errors = [];
     const search = normalizeQueryString(query.search, "Từ khóa tìm kiếm", errors);
     const status = normalizeQueryString(query.status, "Trạng thái", errors);
+    const statusesValue = normalizeQueryString(
+      query.statuses,
+      "Danh sách trạng thái",
+      errors,
+    );
     const priority = normalizeQueryString(query.priority, "Mức độ ưu tiên", errors);
     const category = normalizeQueryString(query.category, "Danh mục", errors);
     const technician = normalizeQueryString(
@@ -155,6 +160,21 @@ export function validateTicketQuery(request, _response, next) {
 
     if (status && !TICKET_STATUSES.includes(status)) {
       errors.push("Bộ lọc trạng thái không hợp lệ.");
+    }
+
+    const statuses = statusesValue
+      ? [...new Set(statusesValue.split(",").map((item) => item.trim()).filter(Boolean))]
+      : [];
+
+    if (
+      statuses.length > TICKET_STATUSES.length ||
+      statuses.some((item) => !TICKET_STATUSES.includes(item))
+    ) {
+      errors.push("Danh sách trạng thái lọc không hợp lệ.");
+    }
+
+    if (status && statuses.length > 0) {
+      errors.push("Chỉ được dùng một kiểu bộ lọc trạng thái.");
     }
 
     if (priority && !TICKET_PRIORITIES.includes(priority)) {
@@ -184,6 +204,7 @@ export function validateTicketQuery(request, _response, next) {
     request.ticketQuery = {
       search,
       status,
+      statuses,
       priority,
       category,
       technician,

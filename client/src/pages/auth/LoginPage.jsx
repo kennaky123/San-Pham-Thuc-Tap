@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
   Eye,
   EyeOff,
-  Headset,
   LoaderCircle,
   LockKeyhole,
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   Navigate,
@@ -74,7 +73,9 @@ function getRedirectPath(role, previousLocation) {
 
   if (
     !pathname ||
-    (pathname !== "/profile" && !pathname.startsWith(allowedPrefix))
+    (pathname !== "/profile" &&
+      pathname !== "/topology" &&
+      !pathname.startsWith(allowedPrefix))
   ) {
     return defaultPath;
   }
@@ -102,7 +103,7 @@ function LoginPage() {
   const apiErrorRef = useRef(null);
 
   useEffect(() => {
-    document.title = "Đăng nhập | IT Helpdesk";
+    document.title = "Đăng nhập | DeskPro IT — AIOps v3.0";
   }, []);
 
   if (isLoading) {
@@ -183,61 +184,82 @@ function LoginPage() {
   }
 
   const emailInputClasses = [
-    "h-12 w-full rounded-lg border bg-white pr-4 pl-11 text-base text-slate-900 outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100",
+    "h-11 w-full rounded-xl border bg-brand-mist pr-4 pl-10 text-sm text-brand-ink outline-none transition placeholder:text-brand-ash focus:bg-white disabled:cursor-not-allowed disabled:opacity-60",
     fieldErrors.email
-      ? "border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100"
-      : "border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-100",
+      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+      : "border-brand-bone focus:border-brand-violet focus:ring-2 focus:ring-brand-violet/20",
   ].join(" ");
   const passwordInputClasses = [
-    "h-12 w-full rounded-lg border bg-white pr-12 pl-11 text-base text-slate-900 outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100",
+    "h-11 w-full rounded-xl border bg-brand-mist pr-11 pl-10 text-sm text-brand-ink outline-none transition placeholder:text-brand-ash focus:bg-white disabled:cursor-not-allowed disabled:opacity-60",
     fieldErrors.password
-      ? "border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100"
-      : "border-slate-300 focus:border-blue-500 focus:ring-3 focus:ring-blue-100",
+      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+      : "border-brand-bone focus:border-brand-violet focus:ring-2 focus:ring-brand-violet/20",
   ].join(" ");
 
   return (
-    <main className="grid min-h-svh bg-slate-50 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,0.82fr)]">
-      <section className="relative hidden overflow-hidden bg-slate-900 p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16">
+    <main className="grid min-h-svh bg-brand-mist lg:grid-cols-[minmax(0,1.08fr)_minmax(28rem,0.92fr)]">
+      {/* Left Brand Showcase (DeskPro IT AIOps v3.0) */}
+      <section className="relative hidden overflow-hidden bg-brand-onyx p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16">
         <div
-          className="absolute -top-40 -left-32 size-96 rounded-full bg-blue-600/20 blur-3xl"
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "radial-gradient(#6647f0 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px",
+          }}
           aria-hidden="true"
         />
         <div
-          className="absolute right-0 bottom-0 size-80 translate-x-1/3 translate-y-1/3 rounded-full bg-blue-500/10 blur-3xl"
+          className="absolute -top-40 -left-32 size-96 rounded-full bg-brand-violet/25 blur-3xl"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute right-0 bottom-0 size-80 translate-x-1/3 translate-y-1/3 rounded-full bg-brand-blue/15 blur-3xl"
           aria-hidden="true"
         />
 
         <div className="relative flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-950/30">
-            <Headset className="size-6" aria-hidden="true" />
-          </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-violet font-display text-sm font-extrabold text-white shadow-lg">
+            IT
+          </div>
           <div>
-            <p className="text-sm font-bold tracking-wide">IT HELPDESK</p>
-            <p className="text-xs text-slate-400">Internal Support Center</p>
+            <div className="flex items-center gap-2">
+              <span className="font-display text-lg font-extrabold tracking-tight">
+                DeskPro
+              </span>
+              <span className="rounded-md border border-brand-mint/30 bg-brand-mint/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-brand-mint">
+                AIOps v3.0
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Enterprise ITSM, Network Topology &amp; Data Warehouse
+            </p>
           </div>
         </div>
 
-        <div className="relative max-w-xl py-16">
-          <p className="text-sm font-semibold tracking-wider text-blue-300 uppercase">
-            Hỗ trợ nội bộ hiệu quả
-          </p>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight xl:text-5xl">
-            Kết nối nhanh với đội ngũ kỹ thuật
+        <div className="relative max-w-xl py-12">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-violet/40 bg-brand-violet/20 px-3 py-1 text-xs font-semibold text-brand-mint">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-mint" />
+            Hệ thống quản lý sự cố &amp; hạ tầng CNTT chuẩn ITIL v4
+          </span>
+          <h2 className="mt-4 font-display text-4xl leading-tight font-extrabold tracking-tight xl:text-5xl">
+            Điều phối sự cố, giám sát mạng &amp; phân tích BI hợp nhất.
           </h2>
-          <p className="mt-5 max-w-lg text-base leading-7 text-slate-300">
-            Tạo yêu cầu, theo dõi tiến độ và trao đổi với bộ phận IT trên một
-            hệ thống thống nhất, minh bạch.
+          <p className="mt-4 max-w-lg text-sm leading-6 text-slate-300">
+            Kết nối Cổng tự phục vụ nhân viên, Bàn làm việc 3 cột của kỹ thuật
+            viên, Sơ đồ mạng Campus và Kho dữ liệu Star Schema trên một nền
+            tảng duy nhất.
           </p>
 
-          <ul className="mt-8 space-y-4 text-sm text-slate-200">
+          <ul className="mt-8 space-y-3.5 text-xs font-medium text-slate-200">
             {[
-              "Theo dõi trạng thái ticket theo thời gian thực",
-              "Trao đổi tập trung trong từng yêu cầu",
-              "Phân quyền rõ ràng cho từng vai trò",
+              "Hàng đợi Ticket mật độ cao với cảnh báo SLA P1–P4 thời gian thực",
+              "Bàn làm việc 3 cột tích hợp Telemetry thiết bị & Canned Responses",
+              "Bản đồ mạng Campus tương tác & Kho dữ liệu OLAP Star Schema",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3">
+              <li key={item} className="flex items-center gap-2.5">
                 <CheckCircle2
-                  className="size-5 shrink-0 text-emerald-400"
+                  className="size-4 shrink-0 text-brand-mint"
                   aria-hidden="true"
                 />
                 {item}
@@ -246,40 +268,50 @@ function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-slate-500">
-          Hệ thống quản lý yêu cầu hỗ trợ nội bộ doanh nghiệp
-        </p>
+        <div className="relative flex items-center justify-between border-t border-white/10 pt-6 font-mono text-xs text-slate-400">
+          <span>DeskPro IT Service Management</span>
+          <span className="text-brand-mint">SLA Uptime: 99.98%</span>
+        </div>
       </section>
 
+      {/* Right Login Card */}
       <section className="flex min-w-0 items-center justify-center px-4 py-8 sm:px-8 lg:px-10 xl:px-16">
         <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-              <Headset className="size-6" aria-hidden="true" />
-            </span>
+          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-ink font-display text-sm font-extrabold text-white">
+              IT
+            </div>
             <div>
-              <p className="text-sm font-bold tracking-wide text-slate-900">
-                IT HELPDESK
+              <div className="flex items-center gap-1.5">
+                <span className="font-display text-base font-extrabold text-brand-ink">
+                  DeskPro
+                </span>
+                <span className="rounded bg-brand-violet/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-brand-violet">
+                  AIOps v3.0
+                </span>
+              </div>
+              <p className="text-xs text-brand-slate">
+                Enterprise ITSM Platform
               </p>
-              <p className="text-xs text-slate-500">Internal Support Center</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="rounded-2xl border border-brand-bone bg-white p-6 shadow-xs sm:p-8">
             <div>
-              <p className="text-sm font-semibold text-blue-700">
-                Chào mừng trở lại
-              </p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Đăng nhập
+              <span className="inline-flex items-center rounded-md bg-brand-violet/10 px-2 py-0.5 text-[11px] font-bold text-brand-violet uppercase">
+                Xác thực SSO / Nội bộ
+              </span>
+              <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-brand-ink sm:text-3xl">
+                Đăng nhập DeskPro IT
               </h1>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Sử dụng tài khoản nội bộ để truy cập hệ thống hỗ trợ IT.
+              <p className="mt-1.5 text-xs leading-5 text-brand-slate">
+                Sử dụng tài khoản doanh nghiệp để truy cập không gian làm việc
+                theo phân quyền.
               </p>
             </div>
 
             <form
-              className="mt-7 space-y-5"
+              className="mt-6 space-y-4"
               onSubmit={handleSubmit}
               noValidate
               aria-busy={isSubmitting}
@@ -287,13 +319,13 @@ function LoginPage() {
               {apiError ? (
                 <div
                   ref={apiErrorRef}
-                  className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 outline-none"
                   role="alert"
                   tabIndex={-1}
                 >
-                  <p className="font-semibold">{apiError.message}</p>
+                  <p className="font-bold">{apiError.message}</p>
                   {apiError.details.length > 0 ? (
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                    <ul className="mt-1.5 list-disc space-y-1 pl-4">
                       {apiError.details.map((detail) => (
                         <li key={detail}>{detail}</li>
                       ))}
@@ -305,13 +337,13 @@ function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-slate-700"
+                  className="mb-1.5 block text-xs font-bold text-brand-ink"
                 >
-                  Email
+                  Email doanh nghiệp
                 </label>
                 <div className="relative">
                   <Mail
-                    className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-brand-ash"
                     aria-hidden="true"
                   />
                   <input
@@ -336,7 +368,7 @@ function LoginPage() {
                   />
                 </div>
                 {fieldErrors.email ? (
-                  <p id="email-error" className="mt-1.5 text-sm text-red-600">
+                  <p id="email-error" className="mt-1 text-xs text-red-600">
                     {fieldErrors.email}
                   </p>
                 ) : null}
@@ -345,13 +377,13 @@ function LoginPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-slate-700"
+                  className="mb-1.5 block text-xs font-bold text-brand-ink"
                 >
                   Mật khẩu
                 </label>
                 <div className="relative">
                   <LockKeyhole
-                    className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-brand-ash"
                     aria-hidden="true"
                   />
                   <input
@@ -375,7 +407,7 @@ function LoginPage() {
                     onClick={() =>
                       setShowPassword((currentValue) => !currentValue)
                     }
-                    className="absolute top-1/2 right-1 flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-blue-600"
+                    className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-brand-ash transition hover:bg-brand-bone/60 hover:text-brand-ink"
                     disabled={isSubmitting}
                     aria-label={
                       showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
@@ -383,33 +415,33 @@ function LoginPage() {
                     aria-pressed={showPassword}
                   >
                     {showPassword ? (
-                      <EyeOff className="size-5" aria-hidden="true" />
+                      <EyeOff className="size-4" aria-hidden="true" />
                     ) : (
-                      <Eye className="size-5" aria-hidden="true" />
+                      <Eye className="size-4" aria-hidden="true" />
                     )}
                   </button>
                 </div>
                 {fieldErrors.password ? (
-                  <p id="password-error" className="mt-1.5 text-sm text-red-600">
+                  <p id="password-error" className="mt-1 text-xs text-red-600">
                     {fieldErrors.password}
                   </p>
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-slate-600">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-brand-slate">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
-                    className="size-4 rounded border-slate-300 accent-blue-600"
+                    className="size-3.5 rounded border-brand-ash accent-brand-violet"
                     disabled={isSubmitting}
                   />
-                  Ghi nhớ đăng nhập
+                  Duy trì đăng nhập
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-blue-700 hover:text-blue-800 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  className="text-xs font-semibold text-brand-violet hover:underline"
                 >
                   Quên mật khẩu?
                 </Link>
@@ -418,35 +450,31 @@ function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-blue-400"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-ink px-4 text-xs font-bold text-white shadow-xs transition hover:bg-brand-carbon disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
                     <LoaderCircle
-                      className="size-5 animate-spin motion-reduce:animate-none"
+                      className="size-4 animate-spin"
                       aria-hidden="true"
                     />
-                    Đang đăng nhập...
+                    Đang xác thực...
                   </>
                 ) : (
-                  "Đăng nhập"
+                  "Đăng Nhập Hệ Thống →"
                 )}
               </button>
 
-              <p className="flex items-start gap-2 text-xs leading-5 text-slate-500">
+              <p className="flex items-start gap-2 pt-2 text-[11px] leading-5 text-brand-ash">
                 <ShieldCheck
-                  className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                  className="mt-0.5 size-4 shrink-0 text-brand-emerald"
                   aria-hidden="true"
                 />
-                Phiên đăng nhập được bảo vệ và tự hết hạn theo chính sách của hệ
-                thống.
+                Phiên làm việc được bảo vệ bằng JWT &amp; kiểm soát truy cập
+                RBAC theo vai trò.
               </p>
             </form>
           </div>
-
-          <p className="mt-6 text-center text-xs leading-5 text-slate-500">
-            Cần hỗ trợ truy cập? Vui lòng liên hệ quản trị viên hệ thống.
-          </p>
         </div>
       </section>
     </main>

@@ -1,80 +1,227 @@
-import {
-  CalendarDays,
-  FolderOpen,
-  Mail,
-  UserRound,
-  Wrench,
-} from "lucide-react";
+import { toast } from "react-toastify";
+import { getAssetTelemetryForTicket } from "../../../data/itsmData.js";
 import { formatTicketDateTime } from "../../../utils/ticketPermissions.js";
 
-function MetadataRow({ icon: Icon, label, children }) {
+function getInitials(name = "") {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "NV";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function TicketMetadataCard({ ticket }) {
+  const asset = getAssetTelemetryForTicket(ticket);
+  const requesterName = ticket.createdBy?.fullName ?? "Không xác định";
+  const requesterDept =
+    ticket.createdBy?.department || "Khối Vận Hành Doanh Nghiệp";
+  const requesterEmail = ticket.createdBy?.email || "user@company.vn";
+
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
-      <div className="min-w-0">
-        <dt className="text-xs font-medium text-slate-500">{label}</dt>
-        <dd className="mt-1 break-words text-sm font-semibold text-slate-800">
-          {children}
-        </dd>
-      </div>
+    <div className="divide-y divide-brand-bone">
+      {/* Section: Requester Info */}
+      <section className="p-5">
+        <h3 className="mb-3 text-[11px] font-bold tracking-wider text-brand-slate uppercase">
+          Thông Tin Người Yêu Cầu
+        </h3>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-violet/10 font-bold text-brand-violet">
+            {getInitials(requesterName)}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-bold text-brand-ink">
+              {requesterName}
+            </div>
+            <div className="truncate text-xs text-brand-slate">
+              {requesterDept}
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 space-y-1.5 text-xs text-brand-slate">
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-ash">Email:</span>
+            <span className="truncate font-mono font-medium text-brand-ink">
+              {requesterEmail}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-ash">Danh mục:</span>
+            <span className="font-semibold text-brand-ink">
+              {ticket.category?.name ?? "Không xác định"}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-ash">Kỹ thuật viên:</span>
+            <span className="font-semibold text-brand-ink">
+              {ticket.assignedTo?.fullName ?? "Chưa phân công"}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-ash">Ngày tạo:</span>
+            <time
+              dateTime={ticket.createdAt}
+              className="font-mono font-medium text-brand-ink"
+            >
+              {formatTicketDateTime(ticket.createdAt)}
+            </time>
+          </div>
+          {ticket.assignedAt ? (
+            <div className="flex justify-between gap-2">
+              <span className="text-brand-ash">Phân công lúc:</span>
+              <time
+                dateTime={ticket.assignedAt}
+                className="font-mono font-medium text-brand-ink"
+              >
+                {formatTicketDateTime(ticket.assignedAt)}
+              </time>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {/* Section: Asset / Device Telemetry (From DeskPro IT View 2) */}
+      <section className="p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-[11px] font-bold tracking-wider text-brand-slate uppercase">
+            Thiết Bị Liên Kết (Asset)
+          </h3>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-emerald">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
+            Online
+          </span>
+        </div>
+
+        <div className="space-y-2.5 rounded-xl border border-brand-bone bg-brand-mist/60 p-3.5 text-xs">
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-slate">Thiết bị:</span>
+            <span className="text-right font-semibold text-brand-ink">
+              {asset.model}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-slate">Asset Tag:</span>
+            <span className="rounded border border-brand-bone bg-white px-1.5 py-0.5 font-mono font-bold text-brand-violet">
+              {asset.tag}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-slate">Hệ điều hành:</span>
+            <span className="text-right font-medium text-brand-ink">
+              {asset.os}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-brand-slate">IP Nội bộ:</span>
+            <span className="font-mono text-brand-ink">{asset.ip}</span>
+          </div>
+          <div className="flex justify-between gap-2 border-t border-brand-bone pt-2">
+            <span className="text-brand-slate">SentinelOne EDR:</span>
+            <span className="font-semibold text-brand-emerald">
+              {asset.status}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              toast.info(
+                `Đang khởi tạo phiên Remote Desktop tới ${asset.tag} (${asset.ip})...`,
+              )
+            }
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-bone bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-mist"
+          >
+            <svg
+              className="h-3.5 w-3.5 text-brand-violet"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            Remote Support
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              toast.success(
+                `Ping ${asset.ip} (${asset.tag}): 64 bytes — time=1.8ms TTL=64 (0% packet loss)`,
+              )
+            }
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-bone bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-mist"
+          >
+            <svg
+              className="h-3.5 w-3.5 text-brand-blue"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+            Ping Thiết Bị
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
 
-function TicketMetadataCard({ ticket }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-bold text-slate-900">Thông tin ticket</h2>
-      <dl className="mt-5 space-y-5">
-        <MetadataRow icon={UserRound} label="Người gửi">
-          {ticket.createdBy?.fullName ?? "Không xác định"}
-        </MetadataRow>
-        {ticket.createdBy?.email ? (
-          <MetadataRow icon={Mail} label="Email">
-            {ticket.createdBy.email}
-          </MetadataRow>
-        ) : null}
-        <MetadataRow icon={FolderOpen} label="Danh mục">
-          {ticket.category?.name ?? "Không xác định"}
-        </MetadataRow>
-        <MetadataRow icon={Wrench} label="Technician phụ trách">
-          {ticket.assignedTo?.fullName ?? "Chưa phân công"}
-        </MetadataRow>
-        <MetadataRow icon={CalendarDays} label="Ngày tạo">
-          <time dateTime={ticket.createdAt}>
-            {formatTicketDateTime(ticket.createdAt)}
-          </time>
-        </MetadataRow>
-        {ticket.assignedAt ? (
-          <MetadataRow icon={CalendarDays} label="Ngày phân công">
-            <time dateTime={ticket.assignedAt}>
-              {formatTicketDateTime(ticket.assignedAt)}
-            </time>
-          </MetadataRow>
-        ) : null}
-      </dl>
-    </section>
-  );
-}
-
 function TicketDescriptionCard({ ticket }) {
+  const requesterName = ticket.createdBy?.fullName ?? "Người yêu cầu";
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-base font-bold text-slate-900">Mô tả sự cố</h2>
-      <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">
+    <section className="rounded-xl border border-brand-bone bg-white p-5 shadow-2xs">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-ink text-xs font-bold text-white">
+            {getInitials(requesterName)}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-brand-ink">
+                {requesterName}
+              </span>
+              <span className="rounded bg-brand-mist px-2 py-0.5 text-[11px] font-medium text-brand-slate">
+                Người yêu cầu • Mô tả sự cố gốc
+              </span>
+            </div>
+            <div className="text-[11px] text-brand-ash">
+              Gửi qua Cổng Self-Service DeskPro IT
+            </div>
+          </div>
+        </div>
+        <time
+          dateTime={ticket.createdAt}
+          className="font-mono text-xs text-brand-ash"
+        >
+          {formatTicketDateTime(ticket.createdAt)}
+        </time>
+      </div>
+
+      <p className="pl-10 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-brand-ink">
         {ticket.description}
       </p>
 
       {ticket.resolution ? (
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-          <h3 className="text-sm font-bold text-emerald-900">Cách giải quyết</h3>
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-emerald-900/90">
+        <div className="mt-5 ml-10 rounded-xl border border-brand-emerald/30 bg-emerald-50/70 p-4">
+          <h3 className="text-xs font-bold tracking-wider text-emerald-900 uppercase">
+            Giải Pháp Khắc Phục Chính Thức (Resolution)
+          </h3>
+          <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-emerald-950">
             {ticket.resolution}
           </p>
           {ticket.resolvedAt ? (
-            <p className="mt-3 text-xs text-emerald-800">
+            <p className="mt-2 font-mono text-xs text-emerald-700">
               Hoàn thành lúc {formatTicketDateTime(ticket.resolvedAt)}
             </p>
           ) : null}
@@ -82,13 +229,15 @@ function TicketDescriptionCard({ ticket }) {
       ) : null}
 
       {ticket.status === "cancelled" ? (
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
-          <h3 className="text-sm font-bold text-red-900">Ticket đã bị hủy</h3>
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-red-800">
+        <div className="mt-5 ml-10 rounded-xl border border-red-200 bg-red-50 p-4">
+          <h3 className="text-xs font-bold tracking-wider text-red-900 uppercase">
+            Ticket Đã Bị Hủy
+          </h3>
+          <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-red-800">
             {ticket.cancellationReason || "Không có lý do hủy."}
           </p>
           {ticket.cancelledAt ? (
-            <p className="mt-3 text-xs text-red-700">
+            <p className="mt-2 font-mono text-xs text-red-700">
               Hủy lúc {formatTicketDateTime(ticket.cancelledAt)}
             </p>
           ) : null}

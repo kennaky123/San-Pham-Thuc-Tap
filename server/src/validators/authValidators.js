@@ -163,3 +163,39 @@ export function validateChangePassword(request, _response, next) {
     return next(error);
   }
 }
+
+export function validateUpdateProfile(request, _response, next) {
+  try {
+    const body = request.body ?? {};
+    const errors = [];
+
+    const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
+    if (fullName.length < 2 || fullName.length > 100) {
+      errors.push("Họ tên phải có từ 2 đến 100 ký tự.");
+    }
+
+    if (body.phone !== undefined && body.phone !== null && body.phone !== "") {
+      if (typeof body.phone !== "string" || !phonePattern.test(body.phone.trim())) {
+        errors.push("Số điện thoại không đúng định dạng.");
+      }
+    }
+
+    if (
+      body.department !== undefined &&
+      body.department !== null &&
+      (typeof body.department !== "string" || body.department.trim().length > 100)
+    ) {
+      errors.push("Phòng ban không được vượt quá 100 ký tự.");
+    }
+
+    request.body = {
+      fullName,
+      phone: typeof body.phone === "string" ? body.phone.trim() || null : null,
+      department: typeof body.department === "string" ? body.department.trim() || null : null,
+    };
+
+    return rejectInvalidInput(errors, next);
+  } catch (error) {
+    return next(error);
+  }
+}

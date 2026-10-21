@@ -90,6 +90,18 @@ function AuthProvider({ children }) {
     setAuthState({ user: null, isLoading: false });
   }, []);
 
+  const updateUserSession = useCallback((authenticationData) => {
+    if (authenticationData?.user && authenticationData?.accessToken) {
+      const storedSession = getStoredAuthSession();
+      const rememberMe = storedSession?.rememberMe ?? false;
+      saveAuthSession(authenticationData, rememberMe);
+      setAuthState({ user: authenticationData.user, isLoading: false });
+    } else if (authenticationData?.user) {
+      updateStoredUser(authenticationData.user);
+      setAuthState({ user: authenticationData.user, isLoading: false });
+    }
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       user: authState.user,
@@ -97,8 +109,9 @@ function AuthProvider({ children }) {
       isLoading: authState.isLoading,
       login,
       logout,
+      updateUserSession,
     }),
-    [authState, login, logout],
+    [authState, login, logout, updateUserSession],
   );
 
   return (

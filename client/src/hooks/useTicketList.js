@@ -3,6 +3,7 @@ import {
   getTicketFilterOptions,
   getTicketList,
 } from "../services/ticketService.js";
+import { REALTIME_DATA_EVENT } from "./useRealtimeUpdates.js";
 
 function useTicketList(query) {
   const [requestVersion, setRequestVersion] = useState(0);
@@ -16,6 +17,7 @@ function useTicketList(query) {
       [
         query.search,
         query.status,
+        query.statuses,
         query.priority,
         query.category,
         query.technician,
@@ -45,6 +47,20 @@ function useTicketList(query) {
     return () => abortController.abort();
   }, [query, requestKey]);
 
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) setRequestVersion((currentVersion) => currentVersion + 1);
+    };
+    const intervalId = window.setInterval(refresh, 10_000);
+    window.addEventListener("focus", refresh);
+    window.addEventListener(REALTIME_DATA_EVENT, refresh);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener(REALTIME_DATA_EVENT, refresh);
+    };
+  }, []);
+
   const refetch = useCallback(() => {
     setRequestVersion((currentVersion) => currentVersion + 1);
   }, []);
@@ -52,7 +68,8 @@ function useTicketList(query) {
   return {
     data: state.data,
     error: state.error,
-    isLoading: state.settledRequestKey !== requestKey,
+    isLoading: !state.data && state.settledRequestKey !== requestKey,
+    isRefreshing: Boolean(state.data) && state.settledRequestKey !== requestKey,
     refetch,
   };
 }

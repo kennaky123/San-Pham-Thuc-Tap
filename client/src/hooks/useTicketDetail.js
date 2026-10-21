@@ -4,6 +4,7 @@ import {
   getTicketDetail,
   getTicketHistory,
 } from "../services/ticketService.js";
+import { REALTIME_DATA_EVENT } from "./useRealtimeUpdates.js";
 
 function useTicketDetail(ticketId) {
   const [requestVersion, setRequestVersion] = useState(0);
@@ -87,6 +88,20 @@ function useTicketDetail(ticketId) {
     return () => abortController.abort();
   }, [requestKey, ticketId]);
 
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) setRequestVersion((currentVersion) => currentVersion + 1);
+    };
+    const intervalId = window.setInterval(refresh, 5_000);
+    window.addEventListener("focus", refresh);
+    window.addEventListener(REALTIME_DATA_EVENT, refresh);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener(REALTIME_DATA_EVENT, refresh);
+    };
+  }, []);
+
   const refetch = useCallback(() => {
     setRequestVersion((currentVersion) => currentVersion + 1);
   }, []);
@@ -98,9 +113,10 @@ function useTicketDetail(ticketId) {
     commentsError: state.commentsError,
     history: state.history,
     historyError: state.historyError,
-    isTicketLoading: state.settledTicketKey !== requestKey,
-    areCommentsLoading: state.settledCommentsKey !== requestKey,
-    isHistoryLoading: state.settledHistoryKey !== requestKey,
+    isTicketLoading: !state.ticket && state.settledTicketKey !== requestKey,
+    isRefreshing: Boolean(state.ticket) && state.settledTicketKey !== requestKey,
+    areCommentsLoading: !state.comments && state.settledCommentsKey !== requestKey,
+    isHistoryLoading: !state.history && state.settledHistoryKey !== requestKey,
     refetch,
   };
 }

@@ -9,12 +9,12 @@ import { formatDashboardNumber } from "../../utils/dashboardFormatters.js";
 import ChartEmptyState from "./ChartEmptyState.jsx";
 
 const STATUS_COLORS = {
-  pending: "#f59e0b",
-  assigned: "#3b82f6",
-  in_progress: "#8b5cf6",
-  waiting_user: "#f97316",
-  resolved: "#10b981",
-  closed: "#64748b",
+  pending: "#0091ff",
+  assigned: "#6647f0",
+  in_progress: "#7c3aed",
+  waiting_user: "#f59e0b",
+  resolved: "#00c07a",
+  closed: "#646464",
   cancelled: "#ef4444",
 };
 
@@ -26,9 +26,9 @@ function StatusTooltip({ active, payload }) {
   const item = payload[0].payload;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-      <p className="font-semibold text-slate-800">{item.name}</p>
-      <p className="mt-1 text-slate-600">
+    <div className="rounded-lg border border-brand-bone bg-brand-ink px-3 py-2 text-xs text-white shadow-lg">
+      <p className="font-semibold">{item.name}</p>
+      <p className="mt-1 font-mono text-brand-mint">
         {formatDashboardNumber(item.value)} ticket
       </p>
     </div>
@@ -70,7 +70,7 @@ function TicketsByStatusChart({ data }) {
               {chartData.map((item) => (
                 <Cell
                   key={item.key}
-                  fill={STATUS_COLORS[item.key] ?? "#94a3b8"}
+                  fill={STATUS_COLORS[item.key] ?? "#838383"}
                 />
               ))}
             </Pie>
@@ -85,15 +85,17 @@ function TicketsByStatusChart({ data }) {
             key={item.key}
             className="flex min-w-0 items-center justify-between gap-3 text-xs"
           >
-            <span className="flex min-w-0 items-center gap-2 text-slate-600">
+            <span className="flex min-w-0 items-center gap-2 text-brand-slate">
               <span
                 className="size-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: STATUS_COLORS[item.key] ?? "#94a3b8" }}
+                style={{
+                  backgroundColor: STATUS_COLORS[item.key] ?? "#838383",
+                }}
                 aria-hidden="true"
               />
               <span className="truncate">{item.name}</span>
             </span>
-            <span className="font-semibold text-slate-800">
+            <span className="font-mono font-bold text-brand-ink">
               {formatDashboardNumber(item.value)}
             </span>
           </li>

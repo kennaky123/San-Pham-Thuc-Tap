@@ -22,9 +22,9 @@ function CategoryTooltip({ active, payload }) {
   const item = payload[0].payload;
 
   return (
-    <div className="max-w-56 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-      <p className="font-semibold text-slate-800">{item.name}</p>
-      <p className="mt-1 text-slate-600">
+    <div className="max-w-56 rounded-lg border border-brand-bone bg-brand-ink px-3 py-2 text-xs text-white shadow-lg">
+      <p className="font-semibold">{item.name}</p>
+      <p className="mt-1 font-mono text-brand-mint">
         {formatDashboardNumber(item.value)} ticket
       </p>
     </div>
@@ -45,7 +45,7 @@ function TicketsByCategoryChart({ data }) {
   return (
     <div className="min-w-0">
       <div
-        className="max-h-[28rem] min-w-0 overflow-y-auto overflow-x-hidden pr-1"
+        className="custom-scrollbar max-h-[28rem] min-w-0 overflow-x-hidden overflow-y-auto pr-1"
         role="img"
         aria-label="Biểu đồ số ticket theo từng danh mục"
       >
@@ -58,7 +58,7 @@ function TicketsByCategoryChart({ data }) {
               accessibilityLayer
             >
               <CartesianGrid
-                stroke="#e2e8f0"
+                stroke="#e8e8e8"
                 strokeDasharray="3 3"
                 horizontal={false}
               />
@@ -67,25 +67,25 @@ function TicketsByCategoryChart({ data }) {
                 allowDecimals={false}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#64748b", fontSize: 11 }}
+                tick={{ fill: "#646464", fontSize: 11 }}
               />
               <YAxis
                 type="category"
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#475569", fontSize: 11 }}
+                tick={{ fill: "#202020", fontSize: 11, fontWeight: 600 }}
                 tickFormatter={truncateCategoryName}
                 width={108}
               />
               <Tooltip
                 content={<CategoryTooltip />}
-                cursor={{ fill: "#f8fafc" }}
+                cursor={{ fill: "#f8f9fa" }}
               />
               <Bar
                 dataKey="value"
                 name="Ticket"
-                fill="#3b82f6"
+                fill="#0091ff"
                 radius={[0, 6, 6, 0]}
                 barSize={18}
                 isAnimationActive={false}

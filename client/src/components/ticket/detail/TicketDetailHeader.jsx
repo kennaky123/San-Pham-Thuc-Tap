@@ -1,47 +1,59 @@
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getSlaDisplayForTicket } from "../../../data/itsmData.js";
 import {
   TicketPriorityBadge,
   TicketStatusBadge,
 } from "../TicketBadges.jsx";
 
 function TicketDetailHeader({ ticket, backPath, refreshing, onRefresh }) {
-  return (
-    <header>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          to={backPath}
-          className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Quay lại danh sách
-        </Link>
-        <button
-          type="button"
-          disabled={refreshing}
-          onClick={onRefresh}
-          className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
-        >
-          <RefreshCw
-            className={`size-4 ${refreshing ? "animate-spin" : ""}`}
-            aria-hidden="true"
-          />
-          {refreshing ? "Đang làm mới..." : "Làm mới"}
-        </button>
-      </div>
+  const sla = getSlaDisplayForTicket(ticket);
 
-      <div className="mt-5">
-        <p className="text-sm font-bold tracking-wide text-blue-700">
-          {ticket.ticketCode}
-        </p>
-        <h1 className="mt-2 break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          {ticket.title}
-        </h1>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <TicketStatusBadge status={ticket.status} />
+  return (
+    <header className="border-b border-brand-bone bg-white px-6 py-4 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            to={backPath}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-bone bg-brand-mist px-2.5 py-1 text-xs font-semibold text-brand-ink transition hover:bg-brand-bone lg:hidden"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden="true" />
+            Danh sách
+          </Link>
+          <span className="rounded bg-brand-mist px-2 py-0.5 font-mono text-xs font-bold text-brand-slate">
+            {ticket.ticketCode}
+          </span>
           <TicketPriorityBadge priority={ticket.priority} />
+          <span className="rounded bg-brand-mist px-2 py-0.5 text-xs font-medium text-brand-slate">
+            {ticket.category?.name ?? "Hạ tầng IT"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-lg border border-brand-bone bg-brand-mist px-2.5 py-1 font-mono text-xs font-semibold">
+            <span className="text-brand-slate">SLA:</span>
+            <span className={`h-2 w-2 rounded-full ${sla.dot}`} />
+            <span className={sla.color}>{sla.label}</span>
+          </div>
+          <TicketStatusBadge status={ticket.status} />
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={onRefresh}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-bone bg-white px-3 py-1.5 text-xs font-semibold text-brand-ink transition hover:bg-brand-mist disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshCw
+              className={`size-3.5 ${refreshing ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
+            {refreshing ? "Đang tải..." : "Làm mới"}
+          </button>
         </div>
       </div>
+
+      <h1 className="mt-2.5 font-display text-lg font-extrabold tracking-tight wrap-break-word text-brand-ink sm:text-xl">
+        {ticket.title}
+      </h1>
     </header>
   );
 }

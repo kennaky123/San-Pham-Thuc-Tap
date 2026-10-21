@@ -1,7 +1,6 @@
-import TicketCollectionPage from "../../components/workspace/TicketCollectionPage.jsx";
-import { MOCK_TICKETS } from "../../data/workspaceMockData.js";
+import TechnicianTicketCollectionPage from "../../components/workspace/TechnicianTicketCollectionPage.jsx";
 
 function TechnicianAssignedPage() {
-  return <TicketCollectionPage eyebrow="Nhân viên kỹ thuật" title="Ticket được phân công" description="Xem và tiếp nhận những yêu cầu admin đã phân công cho bạn." tickets={MOCK_TICKETS} allowedStatuses={["assigned"]} actionLabel="Tiếp nhận" emptyMessage="Không có ticket mới được phân công." />;
+  return <TechnicianTicketCollectionPage title="Ticket được phân công" description="Xem và tiếp nhận những yêu cầu admin đã phân công cho bạn." statuses={["assigned"]} sourcePath="/technician/tickets/assigned" actionLabel="Tiếp nhận" emptyMessage="Không có ticket mới được phân công." />;
 }
 export default TechnicianAssignedPage;

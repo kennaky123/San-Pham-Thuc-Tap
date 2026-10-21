@@ -1,8 +1,34 @@
-function WorkspaceStatCard({ icon: Icon, label, value, description, tone = "blue" }) {
-  const tones = { blue: "bg-blue-50 text-blue-700", emerald: "bg-emerald-50 text-emerald-700", amber: "bg-amber-50 text-amber-700", violet: "bg-violet-50 text-violet-700", red: "bg-red-50 text-red-700" };
+function WorkspaceStatCard({
+  icon: Icon,
+  label,
+  value,
+  description,
+  tone = "blue",
+}) {
+  const tones = {
+    blue: "bg-blue-50 text-brand-blue",
+    emerald: "bg-emerald-50 text-emerald-600",
+    amber: "bg-amber-50 text-amber-600",
+    violet: "bg-purple-50 text-brand-violet",
+    red: "bg-red-50 text-red-600",
+  };
+
   return (
-    <article className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-600">{label}</p><p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{value}</p><p className="mt-1 text-xs leading-5 text-slate-500">{description}</p></div><span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[tone] ?? tones.blue}`}><Icon className="size-5" aria-hidden="true" /></span></div>
+    <article className="bg-white p-5 rounded-2xl border border-brand-bone shadow-xs">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-brand-slate">{label}</span>
+        <span
+          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+            tones[tone] ?? tones.blue
+          }`}
+        >
+          <Icon className="w-4 h-4" aria-hidden="true" />
+        </span>
+      </div>
+      <div className="text-2xl font-display font-extrabold text-brand-onyx">
+        {value}
+      </div>
+      <div className="text-[11px] text-brand-slate mt-1">{description}</div>
     </article>
   );
 }

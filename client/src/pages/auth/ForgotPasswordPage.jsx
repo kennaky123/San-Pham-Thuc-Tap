@@ -1,53 +1,55 @@
+import { ArrowLeft, KeyRound } from "lucide-react";
 import { useEffect } from "react";
-import { ArrowLeft, Headset, KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function ForgotPasswordPage() {
   useEffect(() => {
-    document.title = "Quên mật khẩu | IT Helpdesk";
+    document.title = "Quên mật khẩu | DeskPro IT";
   }, []);
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-slate-50 px-4 py-10 sm:px-6">
+    <main className="flex min-h-svh items-center justify-center bg-brand-mist px-4 py-10 sm:px-6">
       <div className="w-full max-w-md">
-        <div className="mb-7 flex items-center justify-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-            <Headset className="size-6" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="text-sm font-bold tracking-wide text-slate-900">
-              IT HELPDESK
-            </p>
-            <p className="text-xs text-slate-500">Internal Support Center</p>
+        <div className="mb-6 flex items-center justify-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-ink font-display text-sm font-extrabold text-white">
+            IT
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-display text-lg font-extrabold tracking-tight text-brand-ink">
+              DeskPro
+            </span>
+            <span className="rounded-md border border-brand-violet/20 bg-brand-violet/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-brand-violet">
+              AIOps v3.0
+            </span>
           </div>
         </div>
 
         <section
-          className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8"
+          className="rounded-2xl border border-brand-bone bg-white p-6 text-center shadow-xs sm:p-8"
           aria-labelledby="forgot-password-title"
         >
-          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-            <KeyRound className="size-7" aria-hidden="true" />
+          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-violet/10 text-brand-violet">
+            <KeyRound className="size-6" aria-hidden="true" />
           </span>
-          <p className="mt-5 text-sm font-semibold text-blue-700">
-            Khôi phục tài khoản
+          <p className="mt-4 text-xs font-bold tracking-wider text-brand-violet uppercase">
+            Khôi phục tài khoản Active Directory
           </p>
           <h1
             id="forgot-password-title"
-            className="mt-2 text-2xl font-bold tracking-tight text-slate-900"
+            className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-brand-ink"
           >
             Quên mật khẩu
           </h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Chức năng đặt lại mật khẩu qua email chưa được kết nối ở phiên bản
-            hiện tại. Vui lòng liên hệ quản trị viên để xác minh và khôi phục tài
-            khoản.
+          <p className="mt-2.5 text-xs leading-5 text-brand-slate">
+            Để đảm bảo an toàn bảo mật nội bộ, vui lòng liên hệ Quản trị viên
+            IT (Hotline <strong className="text-brand-ink">Ext: 8888</strong>) để
+            xác minh danh tính và cấp lại mật khẩu.
           </p>
           <Link
             to="/login"
-            className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-brand-ink px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-carbon"
           >
-            <ArrowLeft className="size-4" aria-hidden="true" />
+            <ArrowLeft className="size-3.5" aria-hidden="true" />
             Quay lại đăng nhập
           </Link>
         </section>
