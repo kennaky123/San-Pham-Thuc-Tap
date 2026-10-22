@@ -1,12 +1,15 @@
 export const KB_ARTICLES = [
   {
     id: "kb-01",
-    title: "Hướng dẫn cài đặt và đăng nhập GlobalProtect VPN từ xa",
+    title: "Hướng dẫn cài đặt và đăng nhập VPN Fortinet & GlobalProtect từ xa",
     category: "Mạng & VPN",
     summary:
-      "Các bước kết nối vào mạng nội bộ công ty an toàn khi làm việc tại nhà (WFA).",
+      "Các bước kết nối vào mạng nội bộ công ty an toàn qua VPN Fortinet / GlobalProtect khi làm việc tại nhà (WFA).",
     content:
-      "1. Tải ứng dụng GlobalProtect tại portal: https://vpn.corp.vn\n2. Cổng kết nối (Portal Address): vpn.corp.vn\n3. Đăng nhập bằng email công ty và xác thực mã 2FA trên ứng dụng Microsoft Authenticator.\n4. Nếu gặp lỗi Gateway Unreachable, vui lòng kiểm tra kết nối mạng hoặc thử đổi DNS sang 1.1.1.1.",
+      "1. Tải ứng dụng VPN Fortinet / GlobalProtect tại portal nội bộ: https://vpn.corp.vn\n2. Cổng kết nối (Portal Address): vpn.corp.vn\n3. Đăng nhập bằng email công ty và xác thực mã 2FA trên ứng dụng Microsoft Authenticator.\n4. Nếu gặp lỗi Gateway Unreachable, vui lòng kiểm tra kết nối mạng hoặc thử đổi DNS sang 1.1.1.1.",
+    answer:
+      "1. Tải ứng dụng VPN Fortinet / GlobalProtect tại portal nội bộ: https://vpn.corp.vn\n2. Cổng kết nối (Portal Address): vpn.corp.vn\n3. Đăng nhập bằng email công ty và xác thực mã 2FA trên ứng dụng Microsoft Authenticator.\n4. Nếu gặp lỗi Gateway Unreachable, vui lòng kiểm tra kết nối mạng hoặc thử đổi DNS sang 1.1.1.1.",
+    views: 1420,
   },
   {
     id: "kb-02",
@@ -16,15 +19,21 @@ export const KB_ARTICLES = [
       "Hướng dẫn map địa chỉ IP máy in HP / Canon cho máy tính Windows và macOS.",
     content:
       "1. Đảm bảo laptop đã kết nối đúng Wi-Fi 'Corp-Internal-5G'.\n2. Trên Windows: Mở Settings -> Printers & Scanners -> Add device -> 'The printer that I want isn't listed' -> Add using IP address: 192.168.1.250.\n3. Trên macOS: Mở System Settings -> Printers -> bấm dấu (+) -> chọn tab IP -> Nhập IP 192.168.1.250 với giao thức LPD.",
+    answer:
+      "1. Đảm bảo laptop đã kết nối đúng Wi-Fi 'Corp-Internal-5G'.\n2. Trên Windows: Mở Settings -> Printers & Scanners -> Add device -> 'The printer that I want isn't listed' -> Add using IP address: 192.168.1.250.\n3. Trên macOS: Mở System Settings -> Printers -> bấm dấu (+) -> chọn tab IP -> Nhập IP 192.168.1.250 với giao thức LPD.",
+    views: 980,
   },
   {
     id: "kb-03",
-    title: "Tự reset mật khẩu tài khoản Microsoft 365 khi bị khóa",
+    title: "Tự reset mật khẩu AD (Active Directory) & Microsoft 365 khi bị khóa",
     category: "Tài khoản",
     summary:
-      "Quy trình mở khóa tài khoản tự phục vụ (SSPR) nhanh chóng mà không cần chờ IT.",
+      "Quy trình mở khóa tài khoản AD và đặt lại mật khẩu tự phục vụ (SSPR) nhanh chóng mà không cần chờ IT.",
     content:
-      "1. Truy cập https://passwordreset.microsoftonline.com\n2. Nhập email công ty và mã captcha.\n3. Chọn phương thức xác minh qua số điện thoại hoặc app Microsoft Authenticator.\n4. Đặt mật khẩu mới tối thiểu 12 ký tự (gồm chữ hoa, chữ thường, số và ký tự đặc biệt).",
+      "1. Truy cập https://passwordreset.microsoftonline.com hoặc cổng AD SSPR nội bộ.\n2. Nhập email công ty và mã captcha.\n3. Chọn phương thức xác minh qua số điện thoại hoặc app Microsoft Authenticator.\n4. Đặt mật khẩu mới tối thiểu 12 ký tự (gồm chữ hoa, chữ thường, số và ký tự đặc biệt).",
+    answer:
+      "1. Truy cập https://passwordreset.microsoftonline.com hoặc cổng AD SSPR nội bộ.\n2. Nhập email công ty và mã captcha.\n3. Chọn phương thức xác minh qua số điện thoại hoặc app Microsoft Authenticator.\n4. Đặt mật khẩu mới tối thiểu 12 ký tự (gồm chữ hoa, chữ thường, số và ký tự đặc biệt).",
+    views: 2150,
   },
   {
     id: "kb-04",
@@ -34,6 +43,9 @@ export const KB_ARTICLES = [
       "Hướng dẫn tải và kích hoạt Word, Excel, PowerPoint, Teams trên máy mới.",
     content:
       "1. Mở trình duyệt vào trang https://portal.office.com\n2. Đăng nhập bằng tài khoản email công ty.\n3. Bấm nút 'Install apps' ở góc trên bên phải màn hình.\n4. Chạy file cài đặt và mở một ứng dụng bất kỳ để tự động nhận bản quyền theo tài khoản.",
+    answer:
+      "1. Mở trình duyệt vào trang https://portal.office.com\n2. Đăng nhập bằng tài khoản email công ty.\n3. Bấm nút 'Install apps' ở góc trên bên phải màn hình.\n4. Chạy file cài đặt và mở một ứng dụng bất kỳ để tự động nhận bản quyền theo tài khoản.",
+    views: 1840,
   },
 ];
 

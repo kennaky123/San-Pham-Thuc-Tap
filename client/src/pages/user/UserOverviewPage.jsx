@@ -31,12 +31,17 @@ function UserOverviewPage() {
   const filteredKb = useMemo(() => {
     const q = kbQuery.trim().toLowerCase();
     if (!q) return KB_ARTICLES;
-    return KB_ARTICLES.filter(
-      (item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q),
-    );
+    return KB_ARTICLES.filter((item) => {
+      const title = (item?.title || "").toLowerCase();
+      const category = (item?.category || "").toLowerCase();
+      const text = (
+        item?.content ||
+        item?.answer ||
+        item?.summary ||
+        ""
+      ).toLowerCase();
+      return title.includes(q) || category.includes(q) || text.includes(q);
+    });
   }, [kbQuery]);
 
   return (
@@ -361,51 +366,73 @@ function UserOverviewPage() {
             </div>
 
             <div className="space-y-2.5">
-              {filteredKb.map((article) => {
-                const isOpen = openKbId === article.id;
-                return (
-                  <div
-                    key={article.id}
-                    className="overflow-hidden rounded-xl border border-brand-bone transition-colors"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpenKbId(isOpen ? null : article.id)
-                      }
-                      className="flex w-full items-center justify-between gap-3 bg-white px-4 py-3 text-left transition-colors hover:bg-brand-mist/50"
+              {filteredKb.length > 0 ? (
+                filteredKb.map((article) => {
+                  const isOpen = openKbId === article.id;
+                  return (
+                    <div
+                      key={article.id}
+                      className="overflow-hidden rounded-xl border border-brand-bone transition-colors"
                     >
-                      <div className="min-w-0">
-                        <span className="rounded bg-brand-violet/10 px-2 py-0.5 text-[10px] font-bold text-brand-violet">
-                          {article.category}
-                        </span>
-                        <h3 className="mt-1 text-xs font-bold text-brand-ink">
-                          {article.title}
-                        </h3>
-                      </div>
-                      <ChevronDown
-                        className={`size-4 shrink-0 text-brand-ash transition-transform ${
-                          isOpen ? "rotate-180 text-brand-violet" : ""
-                        }`}
-                      />
-                    </button>
-                    {isOpen ? (
-                      <div className="border-t border-brand-bone bg-brand-mist/40 px-4 py-3 text-xs leading-relaxed text-brand-slate">
-                        <p>{article.answer}</p>
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-brand-ash">
-                          <span>Lượt xem: {article.views}</span>
-                          <Link
-                            to="/user/tickets/new"
-                            className="font-semibold text-brand-violet hover:underline"
-                          >
-                            Vẫn chưa khắc phục được? Tạo ticket →
-                          </Link>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenKbId(isOpen ? null : article.id)
+                        }
+                        className="flex w-full items-center justify-between gap-3 bg-white px-4 py-3 text-left transition-colors hover:bg-brand-mist/50"
+                      >
+                        <div className="min-w-0">
+                          <span className="rounded bg-brand-violet/10 px-2 py-0.5 text-[10px] font-bold text-brand-violet">
+                            {article.category}
+                          </span>
+                          <h3 className="mt-1 text-xs font-bold text-brand-ink">
+                            {article.title}
+                          </h3>
                         </div>
-                      </div>
-                    ) : null}
+                        <ChevronDown
+                          className={`size-4 shrink-0 text-brand-ash transition-transform ${
+                            isOpen ? "rotate-180 text-brand-violet" : ""
+                          }`}
+                        />
+                      </button>
+                      {isOpen ? (
+                        <div className="border-t border-brand-bone bg-brand-mist/40 px-4 py-3 text-xs leading-relaxed text-brand-slate">
+                          <p className="whitespace-pre-line">
+                            {article.content ||
+                              article.answer ||
+                              article.summary}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between text-[11px] text-brand-ash">
+                            <span>Lượt xem: {article.views ?? 120}</span>
+                            <Link
+                              to="/user/tickets/new"
+                              className="font-semibold text-brand-violet hover:underline"
+                            >
+                              Vẫn chưa khắc phục được? Tạo ticket →
+                            </Link>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-xl border border-brand-bone bg-brand-mist/50 p-6 text-center text-xs text-brand-slate">
+                  Không tìm thấy bài viết hướng dẫn phù hợp với từ khóa &ldquo;
+                  <span className="font-semibold text-brand-ink">
+                    {kbQuery}
+                  </span>
+                  &rdquo;.
+                  <div className="mt-2.5">
+                    <Link
+                      to="/user/tickets/new"
+                      className="font-semibold text-brand-violet hover:underline"
+                    >
+                      + Tạo ticket để kỹ thuật viên hỗ trợ bạn ngay →
+                    </Link>
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
           </section>
         </div>
