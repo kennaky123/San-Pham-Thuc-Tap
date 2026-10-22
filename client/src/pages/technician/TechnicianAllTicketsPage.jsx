@@ -14,3 +14,4 @@ function TechnicianAllTicketsPage() {
 }
 
 export default TechnicianAllTicketsPage;
+

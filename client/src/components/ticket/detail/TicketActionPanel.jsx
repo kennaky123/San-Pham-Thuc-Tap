@@ -303,16 +303,32 @@ function StatusUpdateForm({ ticket, transitions, onUpdateStatus }) {
         />
       ) : null}
 
+      {resolving ? (
+        <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[11px] text-emerald-800">
+          ✓ Bạn đang hoàn thành ticket này. Vui lòng nhập cách giải quyết và ghi chú để lưu lại vào lịch sử.
+        </p>
+      ) : null}
+
       <InlineActionError error={error} />
       <button
         type="submit"
         disabled={submitting || !targetStatus || !note.trim()}
-        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-violet px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-violet/90 disabled:cursor-not-allowed disabled:opacity-40"
+        className={`mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
+          resolving
+            ? "bg-emerald-600 hover:bg-emerald-700"
+            : "bg-brand-violet hover:bg-brand-violet/90"
+        }`}
       >
         {submitting ? (
           <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
+        ) : resolving ? (
+          <CheckCircle2 className="size-3.5" aria-hidden="true" />
         ) : null}
-        {submitting ? "Đang cập nhật..." : "Cập Nhật Trạng Thái"}
+        {submitting
+          ? "Đang cập nhật..."
+          : resolving
+            ? "Hoàn Thành / Xác Nhận Đã Giải Quyết"
+            : "Cập Nhật Trạng Thái"}
       </button>
     </form>
   );
@@ -434,14 +450,19 @@ function TicketActionPanel({
             </h4>
             <div className="space-y-2">
               {permissions.canClose ? (
-                <button
-                  type="button"
-                  onClick={onRequestClose}
-                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-emerald px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-emerald/90"
-                >
-                  <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                  Xác Nhận Đóng Ticket
-                </button>
+                <div>
+                  <p className="mb-2 rounded-lg border border-emerald-200 bg-emerald-50/80 p-2 text-[11px] text-emerald-800">
+                    Sự cố đã được giải quyết xong. Xác nhận đóng ticket để hoàn tất phiên làm việc.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onRequestClose}
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-2xs transition hover:bg-emerald-700"
+                  >
+                    <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                    Xác Nhận Đóng Ticket (Hoàn Tất)
+                  </button>
+                </div>
               ) : null}
               {permissions.canCancel ? (
                 <button

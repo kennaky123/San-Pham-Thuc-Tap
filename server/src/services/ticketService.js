@@ -520,7 +520,10 @@ export async function closeTicket(ticketId, note, actor) {
   const ticket = await Ticket.findOne(
     actor.role === "admin"
       ? { _id: ticketId }
-      : { _id: ticketId, createdBy: actor._id },
+      : {
+          _id: ticketId,
+          $or: [{ createdBy: actor._id }, { assignedTo: actor._id }],
+        },
   );
 
   if (!ticket) {

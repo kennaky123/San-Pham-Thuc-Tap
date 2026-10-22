@@ -22,7 +22,7 @@ export const env = Object.freeze({
   mongoUri: process.env.MONGODB_URI?.trim() ?? "",
   clientUrl: process.env.CLIENT_URL?.trim() || "http://127.0.0.1:5173",
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET?.trim() ?? "",
-  jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN?.trim() || "15m",
+  jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN?.trim() || "365d",
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET?.trim() ?? "",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN?.trim() || "7d",
   bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12),

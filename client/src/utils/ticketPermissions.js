@@ -11,7 +11,7 @@ const STATUS_LABELS = Object.freeze({
   assigned: "Đã phân công",
   in_progress: "Đang xử lý",
   waiting_user: "Chờ người dùng",
-  resolved: "Đã giải quyết",
+  resolved: "Đã giải quyết (Hoàn thành)",
   closed: "Đã đóng",
   cancelled: "Đã hủy",
 });
@@ -85,7 +85,8 @@ export function getTicketPermissions(ticket, user) {
         ["pending", "assigned", "in_progress", "waiting_user"].includes(
           status,
         )),
-    canClose: (isUserOwner || isAdmin) && status === "resolved",
+    canClose:
+      (isUserOwner || isAdmin || isAnyTechnician) && status === "resolved",
     canViewInternalContent: isAdmin || isTechnician,
     statusTransitions: transitions,
   };

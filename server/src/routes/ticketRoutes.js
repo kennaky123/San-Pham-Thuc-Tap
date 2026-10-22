@@ -84,7 +84,7 @@ router.patch(
 
 router.patch(
   "/:ticketId/close",
-  authorizeRoles("user", "admin"),
+  authorizeRoles("user", "admin", "technician"),
   validateTicketId,
   validateCloseTicket,
   closeTicket,
