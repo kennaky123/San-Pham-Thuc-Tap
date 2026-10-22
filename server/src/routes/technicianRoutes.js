@@ -15,7 +15,7 @@ const router = Router();
 router.get(
   "/",
   authenticate,
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "user", "technician"),
   listActiveTechnicians,
 );
 router.get("/admin", authenticate, authorizeRoles("admin"), listAdminTechnicians);

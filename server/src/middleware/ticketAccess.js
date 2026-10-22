@@ -14,7 +14,7 @@ export function isTicketParticipant(ticket, user) {
     return false;
   }
 
-  if (user.role === "admin") {
+  if (user.role === "admin" || user.role === "technician") {
     return true;
   }
 
@@ -33,7 +33,7 @@ export function isTicketParticipant(ticket, user) {
 }
 
 export function buildTicketAccessFilter(ticketId, user) {
-  if (user.role === "admin") {
+  if (user.role === "admin" || user.role === "technician") {
     return { _id: ticketId };
   }
 

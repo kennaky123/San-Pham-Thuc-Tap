@@ -25,11 +25,12 @@ const formatter = new Intl.DateTimeFormat("vi-VN", {
 function TechnicianTicketCollectionPage({
   title,
   description,
-  statuses,
+  statuses = [],
   actionLabel,
   emptyMessage,
   sourcePath,
 }) {
+  const isAllView = !statuses || statuses.length === 0;
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [priority, setPriority] = useState("");
@@ -38,7 +39,7 @@ function TechnicianTicketCollectionPage({
     () => ({
       search: search.trim(),
       status,
-      statuses: status ? "" : statuses.join(","),
+      statuses: status ? "" : statuses.length > 0 ? statuses.join(",") : "",
       priority,
       category: "",
       technician: "",
@@ -86,6 +87,22 @@ function TechnicianTicketCollectionPage({
             >
               Tất Cả
             </button>
+            {isAllView ? (
+              <button
+                type="button"
+                onClick={() =>
+                  updateFilter(setStatus, status === "pending" ? "" : "pending")
+                }
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                  status === "pending"
+                    ? "bg-brand-ink text-white shadow-xs"
+                    : "text-amber-700 hover:bg-amber-50"
+                }`}
+              >
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Chờ Phân Công
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() =>
@@ -100,7 +117,7 @@ function TechnicianTicketCollectionPage({
               <span className="h-2 w-2 rounded-full bg-red-500" />
               P1 - Khẩn Cấp
             </button>
-            {statuses.includes("in_progress") ? (
+            {isAllView || statuses.includes("in_progress") ? (
               <button
                 type="button"
                 onClick={() =>
@@ -139,22 +156,25 @@ function TechnicianTicketCollectionPage({
               aria-label="Lọc trạng thái"
             >
               <option value="">Trạng Thái: Tất Cả</option>
-              {statuses.includes("assigned") ? (
+              {isAllView || statuses.includes("pending") ? (
+                <option value="pending">Chờ Phân Công</option>
+              ) : null}
+              {isAllView || statuses.includes("assigned") ? (
                 <option value="assigned">Đã Phân Công</option>
               ) : null}
-              {statuses.includes("in_progress") ? (
+              {isAllView || statuses.includes("in_progress") ? (
                 <option value="in_progress">Đang Xử Lý</option>
               ) : null}
-              {statuses.includes("waiting_user") ? (
+              {isAllView || statuses.includes("waiting_user") ? (
                 <option value="waiting_user">Chờ User</option>
               ) : null}
-              {statuses.includes("resolved") ? (
+              {isAllView || statuses.includes("resolved") ? (
                 <option value="resolved">Đã Xong</option>
               ) : null}
-              {statuses.includes("closed") ? (
+              {isAllView || statuses.includes("closed") ? (
                 <option value="closed">Đã Đóng</option>
               ) : null}
-              {statuses.includes("cancelled") ? (
+              {isAllView || statuses.includes("cancelled") ? (
                 <option value="cancelled">Đã Hủy</option>
               ) : null}
             </select>
@@ -232,6 +252,16 @@ function TechnicianTicketCollectionPage({
                             </dd>
                           </div>
                           <div>
+                            <dt className="text-brand-ash">Kỹ thuật viên</dt>
+                            <dd className="mt-0.5 font-semibold text-brand-ink">
+                              {ticket.assignedTo?.fullName ? (
+                                ticket.assignedTo.fullName
+                              ) : (
+                                <span className="text-amber-700">Chưa phân công</span>
+                              )}
+                            </dd>
+                          </div>
+                          <div>
                             <dt className="text-brand-ash">Ngày tạo</dt>
                             <dd className="mt-0.5 font-mono text-brand-slate">
                               {formatter.format(new Date(ticket.createdAt))}
@@ -241,16 +271,22 @@ function TechnicianTicketCollectionPage({
                         <Link
                           to={`/technician/tickets/${ticket._id}`}
                           state={{ navigationPath: sourcePath }}
-                          className="mt-4 flex min-h-9 w-full items-center justify-center rounded-lg bg-brand-ink text-xs font-semibold text-white hover:bg-brand-carbon"
+                          className={`mt-4 flex min-h-9 w-full items-center justify-center rounded-lg text-xs font-semibold text-white transition ${
+                            !ticket.assignedTo || ticket.status === "pending"
+                              ? "bg-brand-violet hover:bg-brand-violet/90"
+                              : "bg-brand-ink hover:bg-brand-carbon"
+                          }`}
                         >
-                          {actionLabel}
+                          {!ticket.assignedTo || ticket.status === "pending"
+                            ? "Tiếp Nhận Ticket"
+                            : actionLabel}
                         </Link>
                       </li>
                     );
                   })}
                 </ul>
                 <div className="hidden overflow-x-auto xl:block">
-                  <table className="w-full min-w-[68rem] text-left">
+                  <table className="w-full min-w-[72rem] text-left">
                     <thead>
                       <tr className="border-b border-brand-bone bg-brand-mist/70 text-[11px] font-bold tracking-wider text-brand-slate uppercase">
                         <th className="px-5 py-3">Mã Ticket</th>
@@ -259,12 +295,15 @@ function TechnicianTicketCollectionPage({
                         <th className="px-4 py-3">Trạng Thái</th>
                         <th className="px-4 py-3">Hạn SLA</th>
                         <th className="px-4 py-3">Người Yêu Cầu</th>
+                        <th className="px-4 py-3">Phụ Trách</th>
                         <th className="px-5 py-3 text-right">Thao Tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-bone text-sm">
                       {tickets.map((ticket) => {
                         const sla = getSlaDisplayForTicket(ticket);
+                        const isUnassigned =
+                          !ticket.assignedTo || ticket.status === "pending";
                         return (
                           <tr
                             key={ticket._id}
@@ -305,7 +344,7 @@ function TechnicianTicketCollectionPage({
                                 <span className={sla.color}>{sla.label}</span>
                               </div>
                             </td>
-                            <td className="max-w-48 px-4 py-3.5">
+                            <td className="max-w-44 px-4 py-3.5">
                               <span className="block truncate text-xs font-semibold text-brand-ink">
                                 {ticket.createdBy?.fullName ?? "Không xác định"}
                               </span>
@@ -315,13 +354,34 @@ function TechnicianTicketCollectionPage({
                                   "Nội bộ"}
                               </span>
                             </td>
+                            <td className="max-w-44 px-4 py-3.5">
+                              {ticket.assignedTo ? (
+                                <div>
+                                  <span className="block truncate text-xs font-semibold text-brand-ink">
+                                    {ticket.assignedTo.fullName}
+                                  </span>
+                                  <span className="block truncate text-[11px] text-brand-ash">
+                                    {ticket.assignedTo.department ||
+                                      "Kỹ thuật viên"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                  Chưa phân công
+                                </span>
+                              )}
+                            </td>
                             <td className="px-5 py-3.5 text-right">
                               <Link
                                 to={`/technician/tickets/${ticket._id}`}
                                 state={{ navigationPath: sourcePath }}
-                                className="inline-flex items-center rounded-lg border border-brand-bone bg-white px-3 py-1.5 text-xs font-semibold text-brand-ink transition hover:border-brand-violet hover:text-brand-violet"
+                                className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                                  isUnassigned
+                                    ? "bg-brand-violet text-white shadow-2xs hover:bg-brand-violet/90"
+                                    : "border border-brand-bone bg-white text-brand-ink hover:border-brand-violet hover:text-brand-violet"
+                                }`}
                               >
-                                {actionLabel} →
+                                {isUnassigned ? "Tiếp nhận" : actionLabel} →
                               </Link>
                             </td>
                           </tr>

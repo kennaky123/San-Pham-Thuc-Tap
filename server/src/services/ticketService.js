@@ -97,12 +97,8 @@ async function generateTicketCode() {
 }
 
 function buildRoleScope(user) {
-  if (user.role === "admin") {
+  if (user.role === "admin" || user.role === "technician") {
     return {};
-  }
-
-  if (user.role === "technician") {
-    return { assignedTo: user._id };
   }
 
   if (user.role === "user") {
@@ -154,6 +150,22 @@ export async function createTicket(input, user, files = []) {
     throw new ApiError(400, "Danh mục không tồn tại hoặc đã bị vô hiệu hóa.");
   }
 
+  let assignedTechnician = null;
+  if (input.technicianId) {
+    assignedTechnician = await User.findOne({
+      _id: input.technicianId,
+      role: "technician",
+      status: "active",
+    });
+
+    if (!assignedTechnician) {
+      throw new ApiError(
+        400,
+        "Kỹ thuật viên được phân công không tồn tại hoặc không hoạt động.",
+      );
+    }
+  }
+
   const ticketCode = await generateTicketCode();
   const now = new Date();
   const attachments = files.map((file) => ({
@@ -164,6 +176,36 @@ export async function createTicket(input, user, files = []) {
     uploadedBy: user._id,
     uploadedAt: now,
   }));
+
+  const initialStatus = assignedTechnician ? "assigned" : "pending";
+  const statusHistory = [
+    {
+      fromStatus: null,
+      toStatus: "pending",
+      changedBy: user._id,
+      note: "Ticket được tạo.",
+      changedAt: now,
+    },
+  ];
+
+  const assignmentHistory = [];
+  if (assignedTechnician) {
+    statusHistory.push({
+      fromStatus: "pending",
+      toStatus: "assigned",
+      changedBy: user._id,
+      note: `Phân công trực tiếp cho kỹ thuật viên ${assignedTechnician.fullName}.`,
+      changedAt: now,
+    });
+    assignmentHistory.push({
+      fromTechnician: null,
+      toTechnician: assignedTechnician._id,
+      assignedBy: user._id,
+      reason: "Chỉ định kỹ thuật viên khi tạo ticket.",
+      assignedAt: now,
+    });
+  }
+
   const ticket = await Ticket.create({
     ticketCode,
     title: input.title,
@@ -171,18 +213,13 @@ export async function createTicket(input, user, files = []) {
     category: input.category,
     priority: input.priority,
     createdBy: user._id,
+    assignedTo: assignedTechnician ? assignedTechnician._id : null,
+    assignedAt: assignedTechnician ? now : null,
     attachments,
-    status: "pending",
+    status: initialStatus,
     lastActivityAt: now,
-    statusHistory: [
-      {
-        fromStatus: null,
-        toStatus: "pending",
-        changedBy: user._id,
-        note: "Ticket được tạo.",
-        changedAt: now,
-      },
-    ],
+    statusHistory,
+    assignmentHistory,
   });
 
   return populateTicket(ticket);
@@ -304,7 +341,7 @@ export async function getTicketAttachment(
   };
 }
 
-export async function assignTechnician(ticketId, input, admin) {
+export async function assignTechnician(ticketId, input, actor) {
   const [ticket, technician] = await Promise.all([
     Ticket.findById(ticketId),
     User.findOne({
@@ -341,7 +378,7 @@ export async function assignTechnician(ticketId, input, admin) {
   ticket.assignmentHistory.push({
     fromTechnician: previousTechnician,
     toTechnician: technician._id,
-    assignedBy: admin._id,
+    assignedBy: actor._id,
     reason: input.reason,
     assignedAt: now,
   });
@@ -350,8 +387,11 @@ export async function assignTechnician(ticketId, input, admin) {
     ticket.statusHistory.push({
       fromStatus: previousStatus,
       toStatus: "assigned",
-      changedBy: admin._id,
-      note: "Ticket đã được phân công cho nhân viên kỹ thuật.",
+      changedBy: actor._id,
+      note:
+        actor.role === "technician" && actor._id.equals(technician._id)
+          ? "Kỹ thuật viên đã tiếp nhận ticket."
+          : "Ticket đã được phân công cho nhân viên kỹ thuật.",
       changedAt: now,
     });
   }

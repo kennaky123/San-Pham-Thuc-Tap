@@ -73,6 +73,59 @@ test("validateCreateTicket từ chối dữ liệu không hợp lệ", async () 
   assert.equal(error.details.length, 4);
 });
 
+test("validateCreateTicket chấp nhận technicianId hợp lệ hoặc để trống", async () => {
+  const technicianId = new mongoose.Types.ObjectId().toString();
+  const requestWithTech = {
+    body: {
+      title: "Sự cố mạng máy trạm phòng kế toán",
+      description: "Không thể kết nối vào máy in mạng và chia sẻ tệp nội bộ.",
+      category: new mongoose.Types.ObjectId().toString(),
+      priority: "high",
+      technicianId,
+    },
+  };
+
+  const errorWithTech = await runMiddleware(
+    validateCreateTicket,
+    requestWithTech,
+  );
+  assert.equal(errorWithTech, undefined);
+  assert.equal(requestWithTech.body.technicianId, technicianId);
+
+  const requestWithoutTech = {
+    body: {
+      title: "Sự cố phần mềm văn phòng Word bị treo",
+      description: "Ứng dụng Word tự động đóng khi mở tệp văn bản mẫu của phòng.",
+      category: new mongoose.Types.ObjectId().toString(),
+      priority: "low",
+      technicianId: "",
+    },
+  };
+
+  const errorWithoutTech = await runMiddleware(
+    validateCreateTicket,
+    requestWithoutTech,
+  );
+  assert.equal(errorWithoutTech, undefined);
+  assert.equal(requestWithoutTech.body.technicianId, undefined);
+});
+
+test("validateCreateTicket từ chối technicianId không hợp lệ", async () => {
+  const request = {
+    body: {
+      title: "Sự cố phần mềm máy chủ sao lưu dữ liệu",
+      description: "Tiến trình sao lưu hàng ngày báo lỗi phân vùng lưu trữ.",
+      category: new mongoose.Types.ObjectId().toString(),
+      priority: "urgent",
+      technicianId: "invalid-tech-id",
+    },
+  };
+
+  const error = await runMiddleware(validateCreateTicket, request);
+  assert.equal(error.statusCode, 400);
+  assert.ok(error.details.some((detail) => detail.includes("Kỹ thuật viên")));
+});
+
 test("validateTicketQuery chuẩn hóa phân trang và sắp xếp", async () => {
   const request = {
     query: {

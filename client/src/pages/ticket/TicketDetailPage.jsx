@@ -50,7 +50,11 @@ function getBackPath(role, status) {
     return "/technician/history";
   }
 
-  return "/technician/tickets/assigned";
+  if (status === "assigned") {
+    return "/technician/tickets/assigned";
+  }
+
+  return "/technician/tickets/all";
 }
 
 function getTicketDetailPath(role, id) {

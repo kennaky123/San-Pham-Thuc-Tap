@@ -117,11 +117,21 @@ export function validateCreateTicket(request, _response, next) {
       errors.push("Mức độ ưu tiên không hợp lệ.");
     }
 
+    const technicianId =
+      typeof body.technicianId === "string" && body.technicianId.trim()
+        ? body.technicianId.trim()
+        : null;
+
+    if (technicianId && !mongoose.isObjectIdOrHexString(technicianId)) {
+      errors.push("Kỹ thuật viên được phân công không hợp lệ.");
+    }
+
     request.body = {
       title,
       description,
       category: body.category,
       priority,
+      technicianId: technicianId || undefined,
     };
 
     return rejectInvalidInput(errors, next);

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import useActiveTechnicians from "../../../hooks/useActiveTechnicians.js";
+import useAuth from "../../../hooks/useAuth.js";
 import { getTicketActionError } from "../../../services/ticketService.js";
 import { getUserServiceErrorMessage } from "../../../services/userService.js";
 import { getTicketStatusLabel } from "../../../utils/ticketPermissions.js";
@@ -38,15 +39,34 @@ function InlineActionError({ error }) {
   );
 }
 
-function AssignmentForm({ ticket, onAssign }) {
+function AssignmentForm({ ticket, canSelfAssign, onAssign }) {
+  const { user: currentUser } = useAuth();
   const techniciansState = useActiveTechnicians(true);
   const [technicianId, setTechnicianId] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selfAssigning, setSelfAssigning] = useState(false);
   const [error, setError] = useState(null);
   const availableTechnicians = techniciansState.technicians.filter(
     (technician) => technician._id !== ticket.assignedTo?._id,
   );
+
+  async function handleSelfAssign() {
+    if (!currentUser?._id) return;
+    setSelfAssigning(true);
+    setError(null);
+
+    try {
+      await onAssign({
+        technicianId: currentUser._id,
+        reason: "Kỹ thuật viên tự nhận xử lý ticket từ hàng đợi chung.",
+      });
+    } catch (requestError) {
+      setError(getTicketActionError(requestError));
+    } finally {
+      setSelfAssigning(false);
+    }
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -80,12 +100,33 @@ function AssignmentForm({ ticket, onAssign }) {
         />
         Kỹ Thuật Viên Phụ Trách (Assignee)
       </h4>
+
+      {canSelfAssign && currentUser?._id ? (
+        <button
+          type="button"
+          onClick={handleSelfAssign}
+          disabled={submitting || selfAssigning}
+          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-violet px-3 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-violet/90 disabled:opacity-50"
+        >
+          {selfAssigning ? (
+            <LoaderCircle
+              className="size-3.5 animate-spin"
+              aria-hidden="true"
+            />
+          ) : (
+            <UserRoundCheck className="size-3.5" aria-hidden="true" />
+          )}
+          {selfAssigning ? "Đang tiếp nhận..." : "Nhận Xử Lý Ticket Này"}
+        </button>
+      ) : null}
+
       <select
         id="assign-technician"
         aria-label="Nhân viên kỹ thuật"
         value={technicianId}
         disabled={
           submitting ||
+          selfAssigning ||
           techniciansState.isLoading ||
           Boolean(techniciansState.error)
         }
@@ -373,7 +414,11 @@ function TicketActionPanel({
           />
         ) : null}
         {permissions.canAssign ? (
-          <AssignmentForm ticket={ticket} onAssign={onAssign} />
+          <AssignmentForm
+            ticket={ticket}
+            canSelfAssign={permissions.canSelfAssign}
+            onAssign={onAssign}
+          />
         ) : null}
         {permissions.canEditResolution ? (
           <ResolutionForm

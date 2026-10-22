@@ -29,6 +29,7 @@ function isFullBleedWorkspace(pathname) {
   }
   if (
     pathname === "/admin/tickets" ||
+    pathname === "/technician/tickets/all" ||
     pathname === "/technician/tickets/assigned" ||
     pathname === "/technician/tickets/in-progress" ||
     pathname === "/technician/history" ||

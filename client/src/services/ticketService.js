@@ -149,7 +149,7 @@ export async function getTicketFilterOptions({ signal } = {}) {
 }
 
 export async function createTicket(
-  { title, category, priority, description, attachments },
+  { title, category, priority, description, technicianId, attachments },
   { signal, onUploadProgress } = {},
 ) {
   const formData = new FormData();
@@ -157,6 +157,9 @@ export async function createTicket(
   formData.append("category", category);
   formData.append("priority", priority);
   formData.append("description", description.trim());
+  if (technicianId) {
+    formData.append("technicianId", technicianId);
+  }
 
   attachments.forEach(({ file }) => {
     formData.append("attachments", file);

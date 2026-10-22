@@ -34,6 +34,7 @@ const NotFoundPage = lazy(() => import("../pages/NotFoundPage.jsx"));
 const UserOverviewPage = lazy(() => import("../pages/user/UserOverviewPage.jsx"));
 const UserTicketsPage = lazy(() => import("../pages/user/UserTicketsPage.jsx"));
 const TechnicianOverviewPage = lazy(() => import("../pages/technician/TechnicianOverviewPage.jsx"));
+const TechnicianAllTicketsPage = lazy(() => import("../pages/technician/TechnicianAllTicketsPage.jsx"));
 const TechnicianAssignedPage = lazy(() => import("../pages/technician/TechnicianAssignedPage.jsx"));
 const TechnicianInProgressPage = lazy(() => import("../pages/technician/TechnicianInProgressPage.jsx"));
 const TechnicianHistoryPage = lazy(() => import("../pages/technician/TechnicianHistoryPage.jsx"));
@@ -143,6 +144,10 @@ function AppRoutes() {
             <Route
               path="technician/overview"
               element={<StandardPageRoute><TechnicianOverviewPage /></StandardPageRoute>}
+            />
+            <Route
+              path="technician/tickets/all"
+              element={<StandardPageRoute><TechnicianAllTicketsPage /></StandardPageRoute>}
             />
             <Route
               path="technician/tickets/assigned"

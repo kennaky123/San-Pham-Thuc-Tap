@@ -58,7 +58,8 @@ export function getTicketPermissions(ticket, user) {
   const isAssignee =
     Boolean(userId) && referenceId(ticket?.assignedTo) === userId;
   const isAdmin = user?.role === "admin";
-  const isTechnician = user?.role === "technician" && isAssignee;
+  const isAnyTechnician = user?.role === "technician";
+  const isTechnician = isAnyTechnician && isAssignee;
   const isUserOwner = user?.role === "user" && isOwner;
   const status = ticket?.status;
   const transitions = getStatusTransitions(status);
@@ -66,7 +67,9 @@ export function getTicketPermissions(ticket, user) {
   return {
     isOwner,
     isAssignee,
-    canAssign: isAdmin && !TERMINAL_STATUSES.has(status),
+    canAssign: (isAdmin || isAnyTechnician) && !TERMINAL_STATUSES.has(status),
+    canSelfAssign:
+      isAnyTechnician && !isAssignee && !TERMINAL_STATUSES.has(status),
     canUpdateStatus:
       (isAdmin || isTechnician) && transitions.length > 0,
     canEditResolution:

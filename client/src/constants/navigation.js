@@ -11,6 +11,7 @@ import {
   Tags,
   UserCog,
   UserRound,
+  UserRoundCheck,
   Users,
 } from "lucide-react";
 
@@ -61,9 +62,16 @@ export const NAVIGATION_BY_ROLE = {
       end: true,
     },
     {
+      label: "Tất Cả Ticket",
+      path: "/technician/tickets/all",
+      icon: Layers,
+      iconColor: "text-brand-blue",
+      end: true,
+    },
+    {
       label: "Hàng Đợi Được Giao",
       path: "/technician/tickets/assigned",
-      icon: Layers,
+      icon: UserRoundCheck,
       iconColor: "text-brand-violet",
       end: true,
     },

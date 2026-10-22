@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clientEnv } from "../../../config/env.js";
 import useActiveCategories from "../../../hooks/useActiveCategories.js";
+import useActiveTechnicians from "../../../hooks/useActiveTechnicians.js";
 import { getCategoryErrorMessage } from "../../../services/categoryService.js";
 import {
   createTicket,
@@ -21,6 +22,7 @@ const INITIAL_VALUES = Object.freeze({
   title: "",
   category: "",
   priority: "medium",
+  technicianId: "",
   description: "",
 });
 
@@ -57,6 +59,10 @@ function TicketRequestForm() {
     isLoading,
     refetch,
   } = useActiveCategories();
+  const {
+    technicians,
+    isLoading: techniciansLoading,
+  } = useActiveTechnicians(true);
   const [values, setValues] = useState(INITIAL_VALUES);
   const [fieldErrors, setFieldErrors] = useState({});
   const [attachmentError, setAttachmentError] = useState("");
@@ -306,7 +312,7 @@ function TicketRequestForm() {
           ) : null}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label
               htmlFor="ticket-category"
@@ -401,6 +407,44 @@ function TicketRequestForm() {
                   (priority) => priority.value === values.priority,
                 )?.description
               }
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="ticket-technician"
+              className="block text-xs font-bold text-brand-ink"
+            >
+              Kỹ thuật viên phụ trách
+              <span className="ml-1 text-[11px] font-normal text-brand-ash">
+                (Tùy chọn)
+              </span>
+            </label>
+            <select
+              id="ticket-technician"
+              name="technicianId"
+              value={values.technicianId}
+              disabled={isSubmitting || techniciansLoading}
+              className={`${inputClassName} font-medium`}
+              onChange={handleFieldChange}
+            >
+              <option value="">
+                {techniciansLoading
+                  ? "Đang tải kỹ thuật viên..."
+                  : "-- Tự động / Tiếp nhận sau --"}
+              </option>
+              {technicians.map((technician) => (
+                <option key={technician._id} value={technician._id}>
+                  {technician.fullName}
+                  {technician.department ? ` (${technician.department})` : ""}
+                </option>
+              ))}
+            </select>
+            <p
+              id="ticket-technician-hint"
+              className="mt-1 text-[11px] text-brand-ash"
+            >
+              Chỉ định kỹ thuật viên phụ trách ngay hoặc để trống để admin/tech tự tiếp nhận.
             </p>
           </div>
         </div>

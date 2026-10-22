@@ -42,7 +42,7 @@ router
     listTickets,
   )
   .post(
-    authorizeRoles("user"),
+    authorizeRoles("user", "technician", "admin"),
     uploadTicketAttachments,
     validateTicketAttachmentContent,
     validateCreateTicket,
@@ -52,7 +52,7 @@ router
 
 router.patch(
   "/:ticketId/assign",
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "technician"),
   validateTicketId,
   validateAssignment,
   assignTechnician,

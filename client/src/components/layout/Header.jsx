@@ -14,6 +14,7 @@ function Header({ mobileMenuOpen, onOpenMobileMenu, onOpenCommandMenu }) {
   const isTicketDetail =
     /^\/(?:admin|user|technician)\/tickets\/[^/]+$/.test(location.pathname) &&
     location.pathname !== "/user/tickets/new" &&
+    location.pathname !== "/technician/tickets/all" &&
     location.pathname !== "/technician/tickets/assigned" &&
     location.pathname !== "/technician/tickets/in-progress";
 
