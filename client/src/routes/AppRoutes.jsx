@@ -41,6 +41,7 @@ const TechnicianHistoryPage = lazy(() => import("../pages/technician/TechnicianH
 const AdminTechniciansPage = lazy(() => import("../pages/admin/AdminTechniciansPage.jsx"));
 const AdminCategoriesPage = lazy(() => import("../pages/admin/AdminCategoriesPage.jsx"));
 const AdminReportsPage = lazy(() => import("../pages/admin/AdminReportsPage.jsx"));
+const AssetManagementPage = lazy(() => import("../pages/admin/AssetManagementPage.jsx"));
 const NetworkTopologyPage = lazy(() => import("../pages/NetworkTopologyPage.jsx"));
 
 function StandardPageRoute({ children }) {
@@ -138,12 +139,20 @@ function AppRoutes() {
               path="user/tickets/:ticketId"
               element={<TicketDetailRoute />}
             />
+            <Route
+              path="user/assets"
+              element={<StandardPageRoute><AssetManagementPage /></StandardPageRoute>}
+            />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={["technician"]} />}>
             <Route
               path="technician/overview"
               element={<StandardPageRoute><TechnicianOverviewPage /></StandardPageRoute>}
+            />
+            <Route
+              path="technician/assets"
+              element={<StandardPageRoute><AssetManagementPage /></StandardPageRoute>}
             />
             <Route
               path="technician/tickets/all"
@@ -179,6 +188,10 @@ function AppRoutes() {
             <Route
               path="admin/tickets/:ticketId"
               element={<TicketDetailRoute />}
+            />
+            <Route
+              path="admin/assets"
+              element={<StandardPageRoute><AssetManagementPage /></StandardPageRoute>}
             />
             <Route
               path="admin/users"

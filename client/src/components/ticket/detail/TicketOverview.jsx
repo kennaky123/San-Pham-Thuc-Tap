@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { getAssetTelemetryForTicket } from "../../../data/itsmData.js";
 import { formatTicketDateTime } from "../../../utils/ticketPermissions.js";
+import { getAssets, launchRemoteDesktop } from "../../../services/assetService.js";
+import RemoteConnectModal from "../../assets/RemoteConnectModal.jsx";
 
 function getInitials(name = "") {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
@@ -10,11 +13,66 @@ function getInitials(name = "") {
 }
 
 function TicketMetadataCard({ ticket }) {
-  const asset = getAssetTelemetryForTicket(ticket);
+  const fallbackAsset = getAssetTelemetryForTicket(ticket);
+  const [realAsset, setRealAsset] = useState(null);
+  const [isRemoteModalOpen, setIsRemoteModalOpen] = useState(false);
+
+  useEffect(() => {
+    const creatorId = ticket.createdBy?._id;
+    if (!creatorId) return;
+
+    const controller = new AbortController();
+    getAssets({ assignedTo: creatorId }, { signal: controller.signal })
+      .then((data) => {
+        if (data?.assets?.length > 0) {
+          setRealAsset(data.assets[0]);
+        }
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [ticket.createdBy?._id]);
+
+  const asset = realAsset
+    ? {
+        model: realAsset.name,
+        tag: realAsset.assetTag,
+        os: realAsset.os || fallbackAsset.os,
+        ip: fallbackAsset.ip,
+        specs: realAsset.specs,
+        status: "Đang Cấp Phát (Chính Chủ)",
+        remoteTool: realAsset.remoteTool,
+        remoteId: realAsset.remoteId,
+        raw: realAsset,
+      }
+    : fallbackAsset;
+
   const requesterName = ticket.createdBy?.fullName ?? "Không xác định";
   const requesterDept =
     ticket.createdBy?.department || "Khối Vận Hành Doanh Nghiệp";
   const requesterEmail = ticket.createdBy?.email || "user@company.vn";
+
+  async function handleRemoteClick() {
+    if (realAsset?.remoteId) {
+      try {
+        const { appName, id } = await launchRemoteDesktop(
+          realAsset.remoteTool,
+          realAsset.remoteId,
+        );
+        toast.success(
+          `Đã sao chép ${appName} ID (${id}) và mở kết nối tới thiết bị của ${requesterName}!`,
+        );
+      } catch (err) {
+        toast.error(err.message || "Không thể mở ứng dụng điều khiển từ xa.");
+      }
+    } else if (realAsset) {
+      setIsRemoteModalOpen(true);
+    } else {
+      toast.info(
+        `Đang khởi tạo phiên Remote Desktop tới ${asset.tag} (${asset.ip})...`,
+      );
+    }
+  }
 
   return (
     <div className="divide-y divide-brand-bone">
@@ -82,7 +140,7 @@ function TicketMetadataCard({ ticket }) {
       <section className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[11px] font-bold tracking-wider text-brand-slate uppercase">
-            Thiết Bị Liên Kết (Asset)
+            Thiết Bị Cấp Phát (Asset)
           </h3>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-emerald">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
@@ -109,12 +167,24 @@ function TicketMetadataCard({ ticket }) {
               {asset.os}
             </span>
           </div>
-          <div className="flex justify-between gap-2">
-            <span className="text-brand-slate">IP Nội bộ:</span>
-            <span className="font-mono text-brand-ink">{asset.ip}</span>
-          </div>
+          {asset.specs && (
+            <div className="flex justify-between gap-2">
+              <span className="text-brand-slate">Cấu hình:</span>
+              <span className="text-right font-medium text-brand-slate truncate max-w-[180px]">
+                {asset.specs}
+              </span>
+            </div>
+          )}
+          {asset.remoteId && (
+            <div className="flex justify-between gap-2">
+              <span className="text-brand-slate">Remote ID ({asset.remoteTool}):</span>
+              <span className="font-mono font-bold text-brand-violet">
+                {asset.remoteId}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between gap-2 border-t border-brand-bone pt-2">
-            <span className="text-brand-slate">SentinelOne EDR:</span>
+            <span className="text-brand-slate">Trạng thái:</span>
             <span className="font-semibold text-brand-emerald">
               {asset.status}
             </span>
@@ -124,12 +194,8 @@ function TicketMetadataCard({ ticket }) {
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() =>
-              toast.info(
-                `Đang khởi tạo phiên Remote Desktop tới ${asset.tag} (${asset.ip})...`,
-              )
-            }
-            className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-bone bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-mist"
+            onClick={handleRemoteClick}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-violet/30 bg-purple-50/60 px-2.5 py-1.5 text-xs font-bold text-brand-violet transition-colors hover:bg-purple-100"
           >
             <svg
               className="h-3.5 w-3.5 text-brand-violet"
@@ -171,6 +237,17 @@ function TicketMetadataCard({ ticket }) {
             Ping Thiết Bị
           </button>
         </div>
+
+        {isRemoteModalOpen && realAsset && (
+          <RemoteConnectModal
+            asset={realAsset}
+            onClose={() => setIsRemoteModalOpen(false)}
+            onUpdated={(updated) => {
+              setRealAsset(updated);
+              setIsRemoteModalOpen(false);
+            }}
+          />
+        )}
       </section>
     </div>
   );

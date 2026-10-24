@@ -10,6 +10,8 @@ import Rating from "../models/Rating.js";
 import Ticket from "../models/Ticket.js";
 import TicketCounter from "../models/TicketCounter.js";
 import User from "../models/User.js";
+import Asset from "../models/Asset.js";
+import AssetRequest from "../models/AssetRequest.js";
 
 const DEFAULT_SEED_PASSWORD = "Helpdesk@123";
 const COMPLETED_STATUSES = new Set(["resolved", "closed"]);
@@ -634,6 +636,8 @@ function createTicketSeedContexts({
 async function clearExistingData({ silent = false } = {}) {
   const deletionResults = [];
   const collections = [
+    ["asset_requests", AssetRequest],
+    ["assets", Asset],
     ["ratings", Rating],
     ["comments", Comment],
     ["tickets", Ticket],
@@ -661,6 +665,8 @@ async function initializeIndexes() {
     Comment.init(),
     Rating.init(),
     TicketCounter.init(),
+    Asset.init(),
+    AssetRequest.init(),
   ]);
 }
 
@@ -687,7 +693,16 @@ function assertSafeDatabaseTarget() {
   console.log(`Database seed mục tiêu: ${databaseName}`);
 }
 
-function printSeedSummary({ accounts, categories, tickets, comments, ratings, password }) {
+function printSeedSummary({
+  accounts,
+  categories,
+  tickets,
+  comments,
+  ratings,
+  assets = [],
+  requests = [],
+  password,
+}) {
   console.log("\nSeed dữ liệu IT Helpdesk thành công:");
   console.table([
     { collection: "users", records: accounts.length },
@@ -695,6 +710,8 @@ function printSeedSummary({ accounts, categories, tickets, comments, ratings, pa
     { collection: "tickets", records: tickets.length },
     { collection: "comments", records: comments.length },
     { collection: "ratings", records: ratings.length },
+    { collection: "assets", records: assets.length },
+    { collection: "asset_requests", records: requests.length },
   ]);
 
   console.log("\nTài khoản đăng nhập mẫu:");
@@ -737,6 +754,199 @@ function assertSeedResult({ accounts, categories, tickets, comments, ratings }) 
   ) {
     throw new Error("Dữ liệu ticket, comment hoặc rating chưa phủ đủ yêu cầu.");
   }
+}
+
+async function seedAssetsAndRequests({ admin, technicians, users, now }) {
+  const an = users.find((u) => u.fullName.includes("An")) || users[0];
+  const binh = users.find((u) => u.fullName.includes("Bình")) || users[1];
+  const cuong = users.find((u) => u.fullName.includes("Cường")) || users[2];
+  const dung = users.find((u) => u.fullName.includes("Dung")) || users[3];
+  const duc = users.find((u) => u.fullName.includes("Đức")) || users[4];
+  const giang = users.find((u) => u.fullName.includes("Giang")) || users[5];
+
+  const tech1 = technicians[0];
+
+  const assets = await Asset.create([
+    {
+      assetTag: "LP-2026-001",
+      name: "Lenovo ThinkPad T14s Gen 4",
+      type: "laptop",
+      serialNumber: "PF4ABC101",
+      specs: "Core i7-1365U, 32GB RAM, 1TB NVMe, 14 inch 2.2K",
+      os: "Windows 11 Pro",
+      status: "in_use",
+      assignedTo: an._id,
+      assignedAt: new Date(now.getTime() - 20 * 86400000),
+      remoteTool: "anydesk",
+      remoteId: "982 341 502",
+      notes: "Cấp phát cho nhân sự bộ phận Kế toán.",
+      history: [
+        { action: "created", performedBy: admin._id, at: new Date(now.getTime() - 30 * 86400000) },
+        { action: "assigned", user: an._id, performedBy: tech1._id, note: "Bàn giao laptop làm việc.", at: new Date(now.getTime() - 20 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-002",
+      name: "Dell Latitude 7440 Ultralight",
+      type: "laptop",
+      serialNumber: "DL7440-992",
+      specs: "Core i5-1345U, 16GB RAM, 512GB SSD, 14 inch FHD+",
+      os: "Windows 11 Pro",
+      status: "in_use",
+      assignedTo: binh._id,
+      assignedAt: new Date(now.getTime() - 15 * 86400000),
+      remoteTool: "teamviewer",
+      remoteId: "1 249 582 103",
+      notes: "Cấp phát máy mỏng nhẹ cho nhân sự phòng Nhân sự.",
+      history: [
+        { action: "created", performedBy: admin._id, at: new Date(now.getTime() - 25 * 86400000) },
+        { action: "assigned", user: binh._id, performedBy: tech1._id, note: "Bàn giao máy Dell.", at: new Date(now.getTime() - 15 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-003",
+      name: "Apple MacBook Pro 14 M3 Pro",
+      type: "laptop",
+      serialNumber: "C02XYZ883",
+      specs: "M3 Pro 12-core, 18GB Unified Memory, 512GB SSD, Liquid Retina XDR",
+      os: "macOS Sonoma",
+      status: "in_use",
+      assignedTo: cuong._id,
+      assignedAt: new Date(now.getTime() - 10 * 86400000),
+      remoteTool: "anydesk",
+      remoteId: "401 829 114",
+      notes: "Cấp phát cho bộ phận Thiết kế / Kỹ thuật.",
+      history: [
+        { action: "created", performedBy: admin._id, at: new Date(now.getTime() - 20 * 86400000) },
+        { action: "assigned", user: cuong._id, performedBy: tech1._id, note: "Bàn giao MacBook Pro M3.", at: new Date(now.getTime() - 10 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-004",
+      name: "HP EliteBook 840 G10",
+      type: "laptop",
+      serialNumber: "HP840G10-441",
+      specs: "Core i7-1360P, 16GB RAM, 512GB SSD, 14 inch SureView",
+      os: "Windows 11 Pro",
+      status: "in_use",
+      assignedTo: dung._id,
+      assignedAt: new Date(now.getTime() - 5 * 86400000),
+      remoteTool: "anydesk",
+      remoteId: "772 109 432",
+      notes: "Cấp phát cho trưởng nhóm Marketing.",
+      history: [
+        { action: "created", performedBy: admin._id, at: new Date(now.getTime() - 15 * 86400000) },
+        { action: "assigned", user: dung._id, performedBy: tech1._id, note: "Bàn giao máy HP EliteBook.", at: new Date(now.getTime() - 5 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-005",
+      name: "Lenovo ThinkPad X1 Carbon Gen 11",
+      type: "laptop",
+      serialNumber: "X1C11-0081",
+      specs: "Core i7-1370P, 32GB RAM, 1TB NVMe, 14 inch 2.8K OLED",
+      os: "Windows 11 Pro",
+      status: "in_stock",
+      remoteTool: "anydesk",
+      remoteId: "302 918 201",
+      notes: "Máy cao cấp mới nhập kho sẵn sàng cấp phát cho Manager.",
+      history: [
+        { action: "created", performedBy: admin._id, note: "Nhập kho máy mới 100%.", at: new Date(now.getTime() - 7 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-006",
+      name: "Dell Latitude 5440 Business",
+      type: "laptop",
+      serialNumber: "DL5440-332",
+      specs: "Core i5-1335U, 16GB RAM, 512GB SSD, 14 inch FHD",
+      os: "Windows 11 Pro",
+      status: "in_stock",
+      remoteTool: "anydesk",
+      remoteId: "551 294 809",
+      notes: "Máy văn phòng tiêu chuẩn trong kho sẵn sàng bàn giao.",
+      history: [
+        { action: "created", performedBy: admin._id, note: "Nhập kho máy mới.", at: new Date(now.getTime() - 6 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-007",
+      name: "Asus ExpertBook B9400",
+      type: "laptop",
+      serialNumber: "B9400-881",
+      specs: "Core i7-1355U, 32GB RAM, 1TB SSD, 14 inch siêu nhẹ 880g",
+      os: "Windows 11 Pro",
+      status: "in_stock",
+      remoteTool: "teamviewer",
+      remoteId: "910 248 119",
+      notes: "Máy dự phòng phục vụ công tác.",
+      history: [
+        { action: "created", performedBy: admin._id, note: "Nhập kho máy dự phòng.", at: new Date(now.getTime() - 4 * 86400000) },
+      ],
+    },
+    {
+      assetTag: "LP-2026-008",
+      name: "Dell Inspiron 14 5420",
+      type: "laptop",
+      serialNumber: "INSP5420-112",
+      specs: "Core i5-1235U, 16GB RAM, 256GB SSD",
+      os: "Windows 11 Home",
+      status: "maintenance",
+      remoteTool: "anydesk",
+      remoteId: "119 403 821",
+      notes: "Lỗi quạt tản nhiệt kêu to và liệt phím Space, đang chờ linh kiện thay thế.",
+      history: [
+        { action: "created", performedBy: admin._id, at: new Date(now.getTime() - 40 * 86400000) },
+        { action: "status_changed", performedBy: tech1._id, note: "Thu hồi chuyển phòng kỹ thuật bảo hành.", at: new Date(now.getTime() - 2 * 86400000) },
+      ],
+    },
+  ]);
+
+  const year = now.getFullYear();
+  const requests = await AssetRequest.create([
+    {
+      requestCode: `AR-${year}-0001`,
+      employee: duc._id,
+      assetType: "laptop",
+      note: "Cần cấp laptop ThinkPad Core i5 16GB RAM phục vụ công tác chi nhánh.",
+      requestedBy: admin._id,
+      technician: null,
+      status: "pending",
+      createdAt: new Date(now.getTime() - 2 * 86400000),
+    },
+    {
+      requestCode: `AR-${year}-0002`,
+      employee: giang._id,
+      assetType: "laptop",
+      note: "Nhân viên mới phòng Marketing cần laptop màn hình chuẩn màu làm đồ họa.",
+      requestedBy: admin._id,
+      technician: tech1._id,
+      status: "in_progress",
+      acceptedAt: new Date(now.getTime() - 1 * 86400000),
+      createdAt: new Date(now.getTime() - 1 * 86400000),
+    },
+    {
+      requestCode: `AR-${year}-0003`,
+      employee: an._id,
+      assetType: "laptop",
+      note: "Bàn giao laptop ThinkPad T14s đợt tuyển dụng đầu quý.",
+      requestedBy: admin._id,
+      technician: tech1._id,
+      asset: assets[0]._id,
+      status: "completed",
+      acceptedAt: new Date(now.getTime() - 21 * 86400000),
+      completedAt: new Date(now.getTime() - 20 * 86400000),
+      createdAt: new Date(now.getTime() - 22 * 86400000),
+    },
+  ]);
+
+  await TicketCounter.create({
+    _id: `asset-request:${year}`,
+    year,
+    sequence: requests.length,
+  });
+
+  return { assets, requests };
 }
 
 async function seedDatabase() {
@@ -812,6 +1022,14 @@ async function seedDatabase() {
       sequence: tickets.length,
     });
 
+    const { assets, requests } = await seedAssetsAndRequests({
+      accounts,
+      admin,
+      technicians,
+      users,
+      now,
+    });
+
     assertSeedResult({ accounts, categories, tickets, comments, ratings });
     printSeedSummary({
       accounts,
@@ -819,6 +1037,8 @@ async function seedDatabase() {
       tickets,
       comments,
       ratings,
+      assets,
+      requests,
       password,
     });
   } catch (error) {

@@ -7,12 +7,14 @@ import dashboardRoutes from "./dashboardRoutes.js";
 import technicianRoutes from "./technicianRoutes.js";
 import ticketRoutes from "./ticketRoutes.js";
 import realtimeRoutes from "./realtimeRoutes.js";
+import assetRoutes from "./assetRoutes.js";
 
 const router = Router();
 
 router.get("/health", getHealth);
 router.use("/auth", authRoutes);
 router.use("/admin/users", adminUserRoutes);
+router.use("/assets", assetRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/events", realtimeRoutes);

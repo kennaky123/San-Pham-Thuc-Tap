@@ -5,6 +5,7 @@ import {
   Clock3,
   HelpCircle,
   History,
+  Laptop,
   LayoutDashboard,
   Layers,
   Network,
@@ -44,6 +45,13 @@ export const NAVIGATION_BY_ROLE = {
       icon: Network,
       iconColor: "text-brand-blue",
       alertDot: true,
+      end: true,
+    },
+    {
+      label: "Thiết Bị Của Tôi",
+      path: "/user/assets",
+      icon: Laptop,
+      iconColor: "text-brand-violet",
       end: true,
     },
     {
@@ -96,12 +104,26 @@ export const NAVIGATION_BY_ROLE = {
       alertDot: true,
       end: true,
     },
+    {
+      label: "Kho & Cấp Phát Laptop",
+      path: "/technician/assets",
+      icon: Laptop,
+      iconColor: "text-brand-violet",
+      end: true,
+    },
   ],
   admin: [
     {
       label: "Hàng Đợi Ticket",
       path: "/admin/tickets",
       icon: Layers,
+      iconColor: "text-brand-violet",
+      end: true,
+    },
+    {
+      label: "Kho & Thiết Bị",
+      path: "/admin/assets",
+      icon: Laptop,
       iconColor: "text-brand-violet",
       end: true,
     },
