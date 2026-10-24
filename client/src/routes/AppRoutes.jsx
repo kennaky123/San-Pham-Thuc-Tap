@@ -42,6 +42,7 @@ const AdminTechniciansPage = lazy(() => import("../pages/admin/AdminTechniciansP
 const AdminCategoriesPage = lazy(() => import("../pages/admin/AdminCategoriesPage.jsx"));
 const AdminReportsPage = lazy(() => import("../pages/admin/AdminReportsPage.jsx"));
 const AssetManagementPage = lazy(() => import("../pages/admin/AssetManagementPage.jsx"));
+const SoftwareLicensePage = lazy(() => import("../pages/admin/SoftwareLicensePage.jsx"));
 const NetworkTopologyPage = lazy(() => import("../pages/NetworkTopologyPage.jsx"));
 
 function StandardPageRoute({ children }) {
@@ -155,6 +156,10 @@ function AppRoutes() {
               element={<StandardPageRoute><AssetManagementPage /></StandardPageRoute>}
             />
             <Route
+              path="technician/software"
+              element={<StandardPageRoute><SoftwareLicensePage /></StandardPageRoute>}
+            />
+            <Route
               path="technician/tickets/all"
               element={<StandardPageRoute><TechnicianAllTicketsPage /></StandardPageRoute>}
             />
@@ -192,6 +197,10 @@ function AppRoutes() {
             <Route
               path="admin/assets"
               element={<StandardPageRoute><AssetManagementPage /></StandardPageRoute>}
+            />
+            <Route
+              path="admin/software"
+              element={<StandardPageRoute><SoftwareLicensePage /></StandardPageRoute>}
             />
             <Route
               path="admin/users"

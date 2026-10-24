@@ -1,4 +1,5 @@
 import {
+  AppWindow,
   BarChart3,
   ChartNoAxesColumn,
   CirclePlus,
@@ -111,6 +112,13 @@ export const NAVIGATION_BY_ROLE = {
       iconColor: "text-brand-violet",
       end: true,
     },
+    {
+      label: "Bản Quyền & FinOps",
+      path: "/technician/software",
+      icon: AppWindow,
+      iconColor: "text-brand-violet",
+      end: true,
+    },
   ],
   admin: [
     {
@@ -124,6 +132,13 @@ export const NAVIGATION_BY_ROLE = {
       label: "Kho & Thiết Bị",
       path: "/admin/assets",
       icon: Laptop,
+      iconColor: "text-brand-violet",
+      end: true,
+    },
+    {
+      label: "Bản Quyền & FinOps",
+      path: "/admin/software",
+      icon: AppWindow,
       iconColor: "text-brand-violet",
       end: true,
     },

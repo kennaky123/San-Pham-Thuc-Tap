@@ -12,6 +12,7 @@ import TicketCounter from "../models/TicketCounter.js";
 import User from "../models/User.js";
 import Asset from "../models/Asset.js";
 import AssetRequest from "../models/AssetRequest.js";
+import SoftwareLicense from "../models/SoftwareLicense.js";
 
 const DEFAULT_SEED_PASSWORD = "Helpdesk@123";
 const COMPLETED_STATUSES = new Set(["resolved", "closed"]);
@@ -636,6 +637,7 @@ function createTicketSeedContexts({
 async function clearExistingData({ silent = false } = {}) {
   const deletionResults = [];
   const collections = [
+    ["software_licenses", SoftwareLicense],
     ["asset_requests", AssetRequest],
     ["assets", Asset],
     ["ratings", Rating],
@@ -667,6 +669,7 @@ async function initializeIndexes() {
     TicketCounter.init(),
     Asset.init(),
     AssetRequest.init(),
+    SoftwareLicense.init(),
   ]);
 }
 
@@ -701,6 +704,7 @@ function printSeedSummary({
   ratings,
   assets = [],
   requests = [],
+  licenses = [],
   password,
 }) {
   console.log("\nSeed dữ liệu IT Helpdesk thành công:");
@@ -712,6 +716,7 @@ function printSeedSummary({
     { collection: "ratings", records: ratings.length },
     { collection: "assets", records: assets.length },
     { collection: "asset_requests", records: requests.length },
+    { collection: "software_licenses", records: licenses.length },
   ]);
 
   console.log("\nTài khoản đăng nhập mẫu:");
@@ -949,6 +954,167 @@ async function seedAssetsAndRequests({ admin, technicians, users, now }) {
   return { assets, requests };
 }
 
+async function seedSoftwareLicenses({ admin, users, now }) {
+  const an = users[0];
+  const binh = users[1];
+  const cuong = users[2];
+  const dung = users[3];
+  const duc = users[4];
+  const giang = users[5];
+
+  const licenses = await SoftwareLicense.create([
+    {
+      name: "Microsoft 365 Business Standard",
+      vendor: "Microsoft Corporation",
+      category: "Văn phòng & Email",
+      type: "saas_subscription",
+      licenseKey: "M365-CORP-2026-SUB",
+      portalUrl: "https://admin.microsoft.com",
+      totalSeats: 25,
+      costPerSeat: 280000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 180 * 86400000),
+      expiryDate: new Date(now.getTime() + 185 * 86400000),
+      assignedUsers: [
+        { user: an._id, note: "Bản quyền Office & Exchange Online" },
+        { user: binh._id, note: "Bản quyền Office & OneDrive 1TB" },
+        { user: cuong._id, note: "Bản quyền Office & Teams" },
+        { user: dung._id, note: "Bản quyền làm việc văn phòng" },
+      ],
+      notes: "Gói Microsoft 365 bao gồm bộ ứng dụng Office cài trên 5 thiết bị, Teams và hộp thư Exchange 50GB.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "Adobe Creative Cloud All Apps",
+      vendor: "Adobe Inc.",
+      category: "Thiết kế & Đồ họa",
+      type: "saas_subscription",
+      licenseKey: "ADOBE-CC-ENTERPRISE-2026",
+      portalUrl: "https://adminconsole.adobe.com",
+      totalSeats: 8,
+      costPerSeat: 1450000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 90 * 86400000),
+      expiryDate: new Date(now.getTime() + 25 * 86400000),
+      assignedUsers: [
+        { user: cuong._id, note: "Photoshop & Illustrator phục vụ thiết kế UI/UX" },
+        { user: giang._id, note: "Premiere Pro & After Effects làm video marketing" },
+      ],
+      notes: "Cấp phát giới hạn cho nhân sự phòng Marketing và Thiết kế đồ họa.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "JetBrains All Products Pack",
+      vendor: "JetBrains s.r.o.",
+      category: "Lập trình & Phát triển",
+      type: "saas_subscription",
+      licenseKey: "JB-COMMERCIAL-9981-L",
+      portalUrl: "https://account.jetbrains.com/organization",
+      totalSeats: 10,
+      costPerSeat: 750000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 120 * 86400000),
+      expiryDate: new Date(now.getTime() + 245 * 86400000),
+      assignedUsers: [
+        { user: duc._id, note: "IntelliJ IDEA Ultimate & WebStorm" },
+      ],
+      notes: "Dành riêng cho nhóm Kỹ sư phần mềm nội bộ.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "Figma Professional Team",
+      vendor: "Figma Inc.",
+      category: "Thiết kế & Đồ họa",
+      type: "saas_subscription",
+      licenseKey: "FIGMA-PRO-ORG-88",
+      portalUrl: "https://www.figma.com/settings",
+      totalSeats: 12,
+      costPerSeat: 360000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 150 * 86400000),
+      expiryDate: new Date(now.getTime() + 215 * 86400000),
+      assignedUsers: [
+        { user: cuong._id, note: "Editor quyền thiết kế hệ thống Design System" },
+        { user: giang._id, note: "Editor quyền thiết kế Banner" },
+      ],
+      notes: "Gói Team Editor không giới hạn file dự án.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "Slack Enterprise Grid",
+      vendor: "Salesforce / Slack",
+      category: "Giao tiếp & Cộng tác",
+      type: "saas_subscription",
+      licenseKey: "SLACK-CORP-GRID",
+      portalUrl: "https://mycompany.slack.com/admin",
+      totalSeats: 50,
+      costPerSeat: 180000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 200 * 86400000),
+      expiryDate: new Date(now.getTime() + 165 * 86400000),
+      assignedUsers: users.slice(0, 8).map((u) => ({
+        user: u._id,
+        note: "Tài khoản giao tiếp nội bộ toàn công ty",
+      })),
+      notes: "Nền tảng giao tiếp, tích hợp bot thông báo ticket Helpdesk.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "Zoom One Pro",
+      vendor: "Zoom Video Communications",
+      category: "Giao tiếp & Cộng tác",
+      type: "saas_subscription",
+      licenseKey: "ZOOM-PRO-CORP-10",
+      portalUrl: "https://zoom.us/account",
+      totalSeats: 15,
+      costPerSeat: 350000,
+      currency: "VND",
+      billingCycle: "monthly",
+      purchaseDate: new Date(now.getTime() - 370 * 86400000),
+      expiryDate: new Date(now.getTime() - 5 * 86400000),
+      assignedUsers: [
+        { user: an._id, note: "Họp đối tác khách hàng" },
+      ],
+      notes: "Tài khoản họp trực tuyến không giới hạn thời gian (Đã hết hạn cần xem xét gia hạn hoặc chuyển sang Teams).",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+    {
+      name: "Windows 11 Pro Commercial OEM",
+      vendor: "Microsoft Corporation",
+      category: "Hệ điều hành & Máy chủ",
+      type: "oem",
+      licenseKey: "W11P-OEM-VL-8829-K",
+      portalUrl: "https://admin.microsoft.com",
+      totalSeats: 30,
+      costPerSeat: 3200000,
+      currency: "VND",
+      billingCycle: "one_time",
+      purchaseDate: new Date(now.getTime() - 300 * 86400000),
+      expiryDate: null,
+      assignedUsers: users.slice(0, 6).map((u) => ({
+        user: u._id,
+        note: "Bản quyền Windows kèm theo máy tính laptop công ty",
+      })),
+      notes: "Bản quyền số Digital License OEM kích hoạt theo phần cứng laptop.",
+      createdBy: admin._id,
+      updatedBy: admin._id,
+    },
+  ]);
+
+  return licenses;
+}
+
 async function seedDatabase() {
   const now = new Date();
   const password = getSeedPassword();
@@ -1030,6 +1196,12 @@ async function seedDatabase() {
       now,
     });
 
+    const licenses = await seedSoftwareLicenses({
+      admin,
+      users,
+      now,
+    });
+
     assertSeedResult({ accounts, categories, tickets, comments, ratings });
     printSeedSummary({
       accounts,
@@ -1039,6 +1211,7 @@ async function seedDatabase() {
       ratings,
       assets,
       requests,
+      licenses,
       password,
     });
   } catch (error) {
