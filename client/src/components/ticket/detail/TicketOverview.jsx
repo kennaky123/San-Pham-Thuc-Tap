@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { getAssetTelemetryForTicket } from "../../../data/itsmData.js";
 import { formatTicketDateTime } from "../../../utils/ticketPermissions.js";
@@ -284,6 +285,13 @@ function TicketDescriptionCard({ ticket }) {
           {formatTicketDateTime(ticket.createdAt)}
         </time>
       </div>
+
+      {ticket.description?.includes("[Đã tự thử kiểm tra theo hướng dẫn danh mục") ? (
+        <div className="mb-3 ml-10 inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-brand-violet">
+          <Sparkles className="size-3.5" />
+          Đã tự thử khắc phục theo danh mục trước khi gửi (Xác nhận lỗi mới)
+        </div>
+      ) : null}
 
       <p className="pl-10 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-brand-ink">
         {ticket.description}

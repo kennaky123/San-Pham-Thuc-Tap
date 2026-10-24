@@ -143,3 +143,4 @@ function ReturnAssetModal({ asset, onClose, onReturned }) {
 }
 
 export default ReturnAssetModal;
+

@@ -1,5 +1,5 @@
-import { AlertCircle, LoaderCircle, RefreshCw, Send } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertCircle, LoaderCircle, RefreshCw, Send, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clientEnv } from "../../../config/env.js";
@@ -17,6 +17,8 @@ import {
   validateTicketForm,
 } from "../../../utils/ticketFormValidation.js";
 import ImageAttachmentField from "./ImageAttachmentField.jsx";
+import { getTroubleshootingGuidesForTicket } from "../../../data/troubleshootingGuides.js";
+import TroubleshootingConfirmationModal from "./TroubleshootingConfirmationModal.jsx";
 
 const INITIAL_VALUES = Object.freeze({
   title: "",
@@ -70,10 +72,24 @@ function TicketRequestForm() {
   const [apiError, setApiError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [showTroubleshootModal, setShowTroubleshootModal] = useState(false);
   const formRef = useRef(null);
   const apiErrorRef = useRef(null);
   const requestControllerRef = useRef(null);
   const previewUrlsRef = useRef(new Set());
+
+  const selectedCategoryObj = useMemo(() => {
+    return categories.find((category) => category.id === values.category) || null;
+  }, [categories, values.category]);
+
+  const relevantGuides = useMemo(() => {
+    if (!selectedCategoryObj) return [];
+    return getTroubleshootingGuidesForTicket({
+      category: selectedCategoryObj,
+      title: values.title,
+      description: values.description,
+    });
+  }, [selectedCategoryObj, values.title, values.description]);
 
   useEffect(() => {
     const previewUrls = previewUrlsRef.current;
@@ -189,7 +205,7 @@ function TicketRequestForm() {
     });
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
     if (isSubmitting) {
@@ -213,14 +229,30 @@ function TicketRequestForm() {
       return;
     }
 
+    // Nếu có hướng dẫn sửa lỗi thông dụng theo danh mục, hiển thị modal trợ lý trước để người dùng thử xử lý
+    if (relevantGuides.length > 0) {
+      setShowTroubleshootModal(true);
+      return;
+    }
+
+    // Nếu không có hướng dẫn thì gửi trực tiếp
+    executeSubmitTicket();
+  }
+
+  async function executeSubmitTicket({ confirmedNewIssue = false } = {}) {
     const abortController = new AbortController();
     requestControllerRef.current = abortController;
     setIsSubmitting(true);
     setUploadProgress(null);
 
+    // Nếu người dùng đã thử khắc phục theo danh mục nhưng chưa hết lỗi, gắn thêm ghi chú rõ ràng
+    const finalDescription = confirmedNewIssue
+      ? `[Đã tự thử kiểm tra theo hướng dẫn danh mục "${selectedCategoryObj?.name || ""}" nhưng chưa hết lỗi]\n\n${values.description}`
+      : values.description;
+
     try {
       const result = await createTicket(
-        { ...values, attachments },
+        { ...values, description: finalDescription, attachments },
         {
           signal: abortController.signal,
           onUploadProgress: (progressEvent) => {
@@ -258,6 +290,20 @@ function TicketRequestForm() {
         setUploadProgress(null);
       }
     }
+  }
+
+  function handleSelfResolved() {
+    setShowTroubleshootModal(false);
+    toast.success(
+      "Tuyệt vời! Bạn đã tự khắc phục thành công sự cố mà không cần chờ IT. Chúc bạn làm việc hiệu quả!",
+      { autoClose: 6000 },
+    );
+    navigate("/user/overview");
+  }
+
+  function handleConfirmSendToHelpDesk() {
+    setShowTroubleshootModal(false);
+    executeSubmitTicket({ confirmedNewIssue: true });
   }
 
   const categoryErrorMessage = categoryError
@@ -449,6 +495,31 @@ function TicketRequestForm() {
           </div>
         </div>
 
+        {selectedCategoryObj && relevantGuides.length > 0 && (
+          <div className="rounded-xl border border-purple-200 bg-purple-50/70 p-4 text-xs text-brand-onyx flex items-start gap-3 shadow-2xs">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand-violet text-white">
+              <Sparkles className="size-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-bold text-brand-violet text-sm">
+                  💡 Trợ lý tự phục vụ: Tìm thấy {relevantGuides.length} giải pháp sửa lỗi nhanh cho &quot;{selectedCategoryObj.name}&quot;
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowTroubleshootModal(true)}
+                  className="font-bold text-brand-violet hover:text-purple-900 underline text-xs"
+                >
+                  Xem các bước sửa lỗi ngay &rarr;
+                </button>
+              </div>
+              <p className="text-xs text-brand-slate mt-1 leading-relaxed">
+                Khi bạn bấm nút &quot;Tạo Ticket&quot;, hệ thống sẽ gợi ý các bước thông dụng để bạn thử trước. Nếu đã sửa xong, bạn không cần chờ IT. Nếu vẫn không được hoặc là lỗi mới, bạn chỉ cần 1 click xác nhận để chuyển thẳng lên Help Desk!
+              </p>
+            </div>
+          </div>
+        )}
+
         <div>
           <label
             htmlFor="ticket-description"
@@ -555,6 +626,18 @@ function TicketRequestForm() {
             : "Tạo Ticket & Bắt Đầu Tính SLA"}
         </button>
       </div>
+
+      {showTroubleshootModal && (
+        <TroubleshootingConfirmationModal
+          categoryName={selectedCategoryObj?.name || "Sự cố kỹ thuật"}
+          guides={relevantGuides}
+          ticketTitle={values.title}
+          isSubmitting={isSubmitting}
+          onClose={() => setShowTroubleshootModal(false)}
+          onSelfResolved={handleSelfResolved}
+          onConfirmSendToHelpDesk={handleConfirmSendToHelpDesk}
+        />
+      )}
     </form>
   );
 }

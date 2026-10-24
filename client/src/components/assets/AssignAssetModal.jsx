@@ -160,3 +160,4 @@ function AssignAssetModal({ asset, onClose, onAssigned }) {
 }
 
 export default AssignAssetModal;
+

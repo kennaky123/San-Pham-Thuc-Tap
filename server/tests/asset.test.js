@@ -118,3 +118,4 @@ test("validateCreateAssetRequest và validateCompleteAssetRequest", async () => 
   };
   assert.equal(await runMiddleware(validateCompleteAssetRequest, completeRequest), undefined);
 });
+

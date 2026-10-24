@@ -116,3 +116,4 @@ function AssetHistoryDrawer({ assetId, onClose }) {
 }
 
 export default AssetHistoryDrawer;
+

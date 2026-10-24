@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, Image, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock3, Image, ShieldCheck, Sparkles } from "lucide-react";
 import TicketRequestForm from "../../components/ticket/create/TicketRequestForm.jsx";
 
 const SUPPORT_TIPS = [
@@ -104,6 +104,16 @@ function CreateTicketPage() {
                 trong 8 giờ làm việc
               </li>
             </ul>
+          </div>
+
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 text-xs text-emerald-950">
+            <div className="flex items-center gap-2 font-display font-bold text-emerald-800">
+              <Sparkles className="size-4 text-emerald-600" />
+              Trợ lý khắc phục tự phục vụ
+            </div>
+            <p className="mt-2 text-emerald-900 leading-relaxed">
+              Hệ thống sẽ gửi các cách sửa lỗi thông dụng tương ứng theo danh mục bạn chọn trước. Nếu đã sửa xong, bạn không cần chờ đợi IT. Nếu vẫn chưa được, bạn chỉ cần 1 click xác nhận là lỗi mới để chuyển ticket lên Help Desk.
+            </p>
           </div>
         </aside>
       </div>
