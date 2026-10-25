@@ -218,7 +218,7 @@ namespace ITHelpdeskUSBAgent
                 if (!candidates.Contains(d)) candidates.Add(d);
             }
 
-            Console.WriteLine("[*] Đang tự động dò tìm máy chủ IT Helpdesk Server...");
+            Console.WriteLine("[*] Đang kiểm tra các địa chỉ máy chủ đã lưu...");
             foreach (string candidate in candidates)
             {
                 if (string.IsNullOrEmpty(candidate)) continue;
@@ -240,10 +240,82 @@ namespace ITHelpdeskUSBAgent
                 }
             }
 
+            // Nếu các IP cũ không phản hồi (do đổi mạng Wi-Fi / Hotspot điện thoại),
+            // TỰ ĐỘNG QUÉT TOÀN BỘ DẢI MẠNG (Auto Subnet Sweep)
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n[!] Không thể tự động kết nối tới máy chủ mặc định.");
+            Console.WriteLine("\n[*] Phát hiện đổi mạng Wi-Fi/Hotspot! Đang tự động quét toàn mạng để tìm máy Server...");
+            Console.ResetColor();
+
+            string discoveredUrl = AutoDiscoverServerOnSubnet(LocalIp);
+            if (!string.IsNullOrEmpty(discoveredUrl))
+            {
+                ServerBaseUrl = discoveredUrl;
+                SaveConfig(ServerBaseUrl);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\n[✓] ĐÃ TỰ ĐỘNG TÌM THẤY VÀ KẾT NỐI TỚI SERVER: {0}", ServerBaseUrl);
+                Console.ResetColor();
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\n[!] Không thể tự động tìm thấy Server trên dải mạng hiện tại.");
             Console.ResetColor();
             PromptForServerUrl();
+        }
+
+        private static string AutoDiscoverServerOnSubnet(string localIp)
+        {
+            if (string.IsNullOrEmpty(localIp) || localIp == "127.0.0.1") return null;
+
+            int lastDot = localIp.LastIndexOf('.');
+            if (lastDot < 0) return null;
+            string prefix = localIp.Substring(0, lastDot + 1); // VD: "192.168.43." hoặc "172.20.10."
+
+            string foundUrl = null;
+            object lockObj = new object();
+
+            Console.Write("    Đang quét nhanh 254 IP trong dải {0}* ", prefix);
+
+            // Quét song song đa luồng để hoàn thành trong 1-2 giây
+            System.Threading.Tasks.Parallel.For(1, 255, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = 40 }, (i, state) =>
+            {
+                if (foundUrl != null)
+                {
+                    state.Stop();
+                    return;
+                }
+
+                string candidateIp = prefix + i;
+                if (candidateIp == localIp) return; // Bỏ qua IP chính mình
+
+                string testUrl = "http://" + candidateIp + ":5000";
+                try
+                {
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(testUrl + "/api/usb/agent-ping");
+                    req.Method = "GET";
+                    req.Timeout = 800; // 800ms phản hồi trong mạng LAN
+                    req.ReadWriteTimeout = 800;
+
+                    using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+                    {
+                        if (resp.StatusCode == HttpStatusCode.OK)
+                        {
+                            lock (lockObj)
+                            {
+                                if (foundUrl == null)
+                                {
+                                    foundUrl = testUrl;
+                                    state.Stop();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+            });
+
+            Console.WriteLine();
+            return foundUrl;
         }
 
         private static void PromptForServerUrl()
@@ -715,3 +787,4 @@ namespace ITHelpdeskUSBAgent
         }
     }
 }
+
