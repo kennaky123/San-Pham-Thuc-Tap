@@ -13,6 +13,8 @@ import User from "../models/User.js";
 import Asset from "../models/Asset.js";
 import AssetRequest from "../models/AssetRequest.js";
 import SoftwareLicense from "../models/SoftwareLicense.js";
+import UsbDevice from "../models/UsbDevice.js";
+import UsbEventLog from "../models/UsbEventLog.js";
 
 const DEFAULT_SEED_PASSWORD = "Helpdesk@123";
 const COMPLETED_STATUSES = new Set(["resolved", "closed"]);
@@ -637,6 +639,8 @@ function createTicketSeedContexts({
 async function clearExistingData({ silent = false } = {}) {
   const deletionResults = [];
   const collections = [
+    ["usb_event_logs", UsbEventLog],
+    ["usb_devices", UsbDevice],
     ["software_licenses", SoftwareLicense],
     ["asset_requests", AssetRequest],
     ["assets", Asset],
@@ -670,6 +674,8 @@ async function initializeIndexes() {
     Asset.init(),
     AssetRequest.init(),
     SoftwareLicense.init(),
+    UsbDevice.init(),
+    UsbEventLog.init(),
   ]);
 }
 
@@ -705,6 +711,8 @@ function printSeedSummary({
   assets = [],
   requests = [],
   licenses = [],
+  usbDevices = [],
+  usbEvents = [],
   password,
 }) {
   console.log("\nSeed dữ liệu IT Helpdesk thành công:");
@@ -717,6 +725,8 @@ function printSeedSummary({
     { collection: "assets", records: assets.length },
     { collection: "asset_requests", records: requests.length },
     { collection: "software_licenses", records: licenses.length },
+    { collection: "usb_devices", records: usbDevices.length },
+    { collection: "usb_event_logs", records: usbEvents.length },
   ]);
 
   console.log("\nTài khoản đăng nhập mẫu:");
@@ -1115,6 +1125,167 @@ async function seedSoftwareLicenses({ admin, users, now }) {
   return licenses;
 }
 
+async function seedUsbSecurityData({ admin, technicians, users, now }) {
+  const tech1 = technicians[0];
+  const an = users[0];
+  const cuong = users[2];
+
+  const usbDevices = await UsbDevice.create([
+    {
+      deviceId: "USBSTOR\\DISK&VEN_KINGSTON&PROD_DATATRAVELER_3.0\\60A44C413DF0B810",
+      deviceName: "Kingston DataTraveler 3.0 64GB",
+      vendor: "Kingston Technology (VID_0951)",
+      serialNumber: "60A44C413DF0B810",
+      deviceType: "storage",
+      driveLetter: "E:",
+      volumeName: "IT_RECOVERY (58.4 GB)",
+      status: "trusted",
+      isCurrentlyConnected: true,
+      lastHost: {
+        hostname: "LAPTOP-TECH01",
+        osUsername: "MinhKy_IT",
+        ipAddress: "192.168.1.16",
+        connectedAt: new Date(now.getTime() - 45 * 60000),
+      },
+      assignedUser: tech1._id,
+      reviewedBy: admin._id,
+      note: "USB cứu hộ & cài đặt Windows tiêu chuẩn của bộ phận IT Helpdesk.",
+      connectionCount: 14,
+    },
+    {
+      deviceId: "USBSTOR\\DISK&VEN_SANDISK&PROD_ULTRA_USB_3.0\\4C53000129041811",
+      deviceName: "SanDisk Ultra Flair USB 3.0 128GB",
+      vendor: "SanDisk Corp (VID_0781)",
+      serialNumber: "4C53000129041811",
+      deviceType: "storage",
+      driveLetter: "F:",
+      volumeName: "SANDISK_128G (119.2 GB)",
+      status: "unverified",
+      isCurrentlyConnected: true,
+      lastHost: {
+        hostname: "DESKTOP-KETOAN02",
+        osUsername: "NguyenVanAn",
+        ipAddress: "192.168.1.105",
+        connectedAt: new Date(now.getTime() - 12 * 60000),
+      },
+      assignedUser: an._id,
+      note: "Thiết bị lưu trữ ngoài mới cắm vào máy kế toán, chờ xác minh DLP.",
+      connectionCount: 1,
+    },
+    {
+      deviceId: "USBSTOR\\DISK&VEN_GENERIC&PROD_FLASH_DISK\\992817263544",
+      deviceName: "Generic Mass Storage USB 2.0 (Unencrypted)",
+      vendor: "Alcor Micro Corp (VID_058F)",
+      serialNumber: "992817263544",
+      deviceType: "storage",
+      driveLetter: "G:",
+      volumeName: "NO_NAME (14.8 GB)",
+      status: "blocked",
+      isCurrentlyConnected: false,
+      lastHost: {
+        hostname: "LAPTOP-NHANSU01",
+        osUsername: "TranThiBinh",
+        ipAddress: "192.168.1.112",
+        connectedAt: new Date(now.getTime() - 180 * 60000),
+        disconnectedAt: new Date(now.getTime() - 165 * 60000),
+      },
+      reviewedBy: admin._id,
+      note: "USB không rõ nguồn gốc, đã chặn theo chính sách bảo mật dữ liệu nhân sự.",
+      connectionCount: 2,
+    },
+    {
+      deviceId: "USB\\VID_046D&PID_C52B\\LOGI_RECEIVER_001",
+      deviceName: "Logitech Unifying USB Receiver",
+      vendor: "Logitech Inc (VID_046D)",
+      serialNumber: "LOGI_RECEIVER_001",
+      deviceType: "input_hid",
+      driveLetter: null,
+      volumeName: null,
+      status: "trusted",
+      isCurrentlyConnected: true,
+      lastHost: {
+        hostname: "WORKSTATION-DESIGN03",
+        osUsername: "LeQuocCuong",
+        ipAddress: "192.168.1.120",
+        connectedAt: new Date(now.getTime() - 240 * 60000),
+      },
+      assignedUser: cuong._id,
+      reviewedBy: tech1._id,
+      note: "Đầu thu chuột & bàn phím không dây Logitech cấp phát theo máy.",
+      connectionCount: 32,
+    },
+  ]);
+
+  const usbEvents = await UsbEventLog.create([
+    {
+      usbDevice: usbDevices[2]._id,
+      deviceId: usbDevices[2].deviceId,
+      deviceName: usbDevices[2].deviceName,
+      vendor: usbDevices[2].vendor,
+      serialNumber: usbDevices[2].serialNumber,
+      deviceType: usbDevices[2].deviceType,
+      driveLetter: usbDevices[2].driveLetter,
+      volumeName: usbDevices[2].volumeName,
+      eventType: "connected",
+      deviceStatusAtEvent: "blocked",
+      hostname: "LAPTOP-NHANSU01",
+      osUsername: "TranThiBinh",
+      ipAddress: "192.168.1.112",
+      createdAt: new Date(now.getTime() - 180 * 60000),
+    },
+    {
+      usbDevice: usbDevices[2]._id,
+      deviceId: usbDevices[2].deviceId,
+      deviceName: usbDevices[2].deviceName,
+      vendor: usbDevices[2].vendor,
+      serialNumber: usbDevices[2].serialNumber,
+      deviceType: usbDevices[2].deviceType,
+      driveLetter: usbDevices[2].driveLetter,
+      volumeName: usbDevices[2].volumeName,
+      eventType: "disconnected",
+      deviceStatusAtEvent: "blocked",
+      hostname: "LAPTOP-NHANSU01",
+      osUsername: "TranThiBinh",
+      ipAddress: "192.168.1.112",
+      createdAt: new Date(now.getTime() - 165 * 60000),
+    },
+    {
+      usbDevice: usbDevices[0]._id,
+      deviceId: usbDevices[0].deviceId,
+      deviceName: usbDevices[0].deviceName,
+      vendor: usbDevices[0].vendor,
+      serialNumber: usbDevices[0].serialNumber,
+      deviceType: usbDevices[0].deviceType,
+      driveLetter: usbDevices[0].driveLetter,
+      volumeName: usbDevices[0].volumeName,
+      eventType: "connected",
+      deviceStatusAtEvent: "trusted",
+      hostname: "LAPTOP-TECH01",
+      osUsername: "MinhKy_IT",
+      ipAddress: "192.168.1.16",
+      createdAt: new Date(now.getTime() - 45 * 60000),
+    },
+    {
+      usbDevice: usbDevices[1]._id,
+      deviceId: usbDevices[1].deviceId,
+      deviceName: usbDevices[1].deviceName,
+      vendor: usbDevices[1].vendor,
+      serialNumber: usbDevices[1].serialNumber,
+      deviceType: usbDevices[1].deviceType,
+      driveLetter: usbDevices[1].driveLetter,
+      volumeName: usbDevices[1].volumeName,
+      eventType: "connected",
+      deviceStatusAtEvent: "unverified",
+      hostname: "DESKTOP-KETOAN02",
+      osUsername: "NguyenVanAn",
+      ipAddress: "192.168.1.105",
+      createdAt: new Date(now.getTime() - 12 * 60000),
+    },
+  ]);
+
+  return { usbDevices, usbEvents };
+}
+
 async function seedDatabase() {
   const now = new Date();
   const password = getSeedPassword();
@@ -1202,6 +1373,13 @@ async function seedDatabase() {
       now,
     });
 
+    const { usbDevices, usbEvents } = await seedUsbSecurityData({
+      admin,
+      technicians,
+      users,
+      now,
+    });
+
     assertSeedResult({ accounts, categories, tickets, comments, ratings });
     printSeedSummary({
       accounts,
@@ -1212,6 +1390,8 @@ async function seedDatabase() {
       assets,
       requests,
       licenses,
+      usbDevices,
+      usbEvents,
       password,
     });
   } catch (error) {

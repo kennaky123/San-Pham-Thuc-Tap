@@ -175,3 +175,4 @@ function AllocateLicenseModal({ license, onClose, onAllocated }) {
 }
 
 export default AllocateLicenseModal;
+

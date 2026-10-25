@@ -114,3 +114,4 @@ test("validateSoftwareQuery lọc theo category và search", async () => {
   assert.equal(request.softwareQuery.category, "Thiết kế & Đồ họa");
   assert.equal(request.softwareQuery.search, "Adobe");
 });
+

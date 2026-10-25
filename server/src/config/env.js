@@ -17,7 +17,7 @@ function parsePositiveInteger(value, fallback) {
 
 export const env = Object.freeze({
   nodeEnv: process.env.NODE_ENV ?? "development",
-  host: process.env.HOST?.trim() || "127.0.0.1",
+  host: process.env.HOST?.trim() || "0.0.0.0",
   port: parsePositiveInteger(process.env.PORT, 5000),
   mongoUri: process.env.MONGODB_URI?.trim() ?? "",
   clientUrl: process.env.CLIENT_URL?.trim() || "http://127.0.0.1:5173",

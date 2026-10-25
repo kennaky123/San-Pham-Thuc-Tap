@@ -26,3 +26,4 @@ export const LICENSE_STATUSES = Object.freeze([
   "expiring_soon",
   "expired",
 ]);
+

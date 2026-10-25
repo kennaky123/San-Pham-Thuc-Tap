@@ -1,3 +1,4 @@
+import os from "node:os";
 import app from "./app.js";
 import {
   connectDatabase,
@@ -7,6 +8,19 @@ import { env, validateEnv } from "./config/env.js";
 
 let httpServer;
 let isShuttingDown = false;
+
+function getLanAddresses() {
+  const interfaces = os.networkInterfaces();
+  const addresses = [];
+  for (const [name, nets] of Object.entries(interfaces)) {
+    for (const net of nets || []) {
+      if (net.family === "IPv4" && !net.internal && !net.address.startsWith("169.254.")) {
+        addresses.push({ name, address: net.address });
+      }
+    }
+  }
+  return addresses;
+}
 
 function listenForRequests() {
   return new Promise((resolve, reject) => {
@@ -28,6 +42,10 @@ async function startServer() {
     httpServer = await listenForRequests();
 
     console.log(`IT Helpdesk API đang chạy tại http://${env.host}:${env.port}`);
+    const lanList = getLanAddresses();
+    for (const item of lanList) {
+      console.log(`  ➜ Mạng LAN (${item.name}): http://${item.address}:${env.port}`);
+    }
   } catch (error) {
     console.error(`Không thể khởi động server: ${error.message}`);
 

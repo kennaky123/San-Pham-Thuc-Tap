@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 import CommandMenuModal from "../components/layout/CommandMenuModal.jsx";
 import Header from "../components/layout/Header.jsx";
 import MobileSidebar from "../components/layout/MobileSidebar.jsx";
 import { getNavigationItemByPath } from "../constants/navigation.js";
 import useAuth from "../hooks/useAuth.js";
-import useRealtimeUpdates from "../hooks/useRealtimeUpdates.js";
+import useRealtimeUpdates, {
+  REALTIME_DATA_EVENT,
+} from "../hooks/useRealtimeUpdates.js";
 
 const SPECIAL_PAGE_TITLES = {
   "/profile": "Hồ sơ cá nhân",
@@ -82,6 +85,47 @@ function AppLayout() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (user?.role !== "admin" && user?.role !== "technician") {
+      return undefined;
+    }
+
+    function handleUsbRealtimeAlert(event) {
+      const alert = event.detail?.usbAlert;
+      if (!alert) return;
+
+      const hostText = `${alert.hostname}${alert.osUsername ? ` (${alert.osUsername})` : ""}`;
+      const driveText = alert.driveLetter ? ` [Ổ ${alert.driveLetter}]` : "";
+
+      if (alert.eventType === "connected") {
+        if (alert.status === "blocked") {
+          toast.error(
+            `🚨 CẢNH BÁO USB BỊ CHẶN: Máy ${hostText} vừa cắm "${alert.deviceName}"${driveText}!`,
+            { autoClose: 8000 },
+          );
+        } else if (alert.status === "unverified") {
+          toast.warning(
+            `⚠️ Phát hiện USB mới: Máy ${hostText} vừa cắm "${alert.deviceName}"${driveText} (Chưa xác minh)`,
+            { autoClose: 7000 },
+          );
+        } else {
+          toast.info(
+            `🔌 Kết nối USB hợp lệ: Máy ${hostText} vừa cắm "${alert.deviceName}"${driveText}`,
+            { autoClose: 5000 },
+          );
+        }
+      } else if (alert.eventType === "disconnected") {
+        toast.info(
+          `📤 Rút thiết bị USB: Máy ${hostText} đã ngắt kết nối "${alert.deviceName}"`,
+          { autoClose: 4000 },
+        );
+      }
+    }
+
+    window.addEventListener(REALTIME_DATA_EVENT, handleUsbRealtimeAlert);
+    return () => window.removeEventListener(REALTIME_DATA_EVENT, handleUsbRealtimeAlert);
+  }, [user?.role]);
 
   const fullBleed = isFullBleedWorkspace(pathname);
 

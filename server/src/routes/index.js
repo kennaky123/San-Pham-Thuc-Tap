@@ -9,6 +9,7 @@ import ticketRoutes from "./ticketRoutes.js";
 import realtimeRoutes from "./realtimeRoutes.js";
 import assetRoutes from "./assetRoutes.js";
 import softwareRoutes from "./softwareRoutes.js";
+import usbRoutes from "./usbRoutes.js";
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use("/auth", authRoutes);
 router.use("/admin/users", adminUserRoutes);
 router.use("/assets", assetRoutes);
 router.use("/software", softwareRoutes);
+router.use("/usb", usbRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/events", realtimeRoutes);

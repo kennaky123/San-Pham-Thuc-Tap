@@ -1,7 +1,11 @@
 const subscribers = new Set();
 
-export function publishDataChanged(resource = "system") {
-  const payload = JSON.stringify({ resource, occurredAt: new Date().toISOString() });
+export function publishDataChanged(resource = "system", extra = {}) {
+  const payload = JSON.stringify({
+    resource,
+    occurredAt: new Date().toISOString(),
+    ...extra,
+  });
   for (const response of subscribers) {
     response.write(`event: data-changed\ndata: ${payload}\n\n`);
   }

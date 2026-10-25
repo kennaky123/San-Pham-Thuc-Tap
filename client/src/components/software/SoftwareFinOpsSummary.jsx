@@ -48,3 +48,4 @@ function SoftwareFinOpsSummary({ finOps = {} }) {
 }
 
 export default SoftwareFinOpsSummary;
+

@@ -11,6 +11,7 @@ import {
   Layers,
   Network,
   Tags,
+  Usb,
   UserCog,
   UserRound,
   UserRoundCheck,
@@ -119,6 +120,14 @@ export const NAVIGATION_BY_ROLE = {
       iconColor: "text-brand-violet",
       end: true,
     },
+    {
+      label: "Giám Sát USB & DLP",
+      path: "/technician/usb-security",
+      icon: Usb,
+      iconColor: "text-amber-600",
+      alertDot: true,
+      end: true,
+    },
   ],
   admin: [
     {
@@ -140,6 +149,14 @@ export const NAVIGATION_BY_ROLE = {
       path: "/admin/software",
       icon: AppWindow,
       iconColor: "text-brand-violet",
+      end: true,
+    },
+    {
+      label: "Giám Sát USB & DLP",
+      path: "/admin/usb-security",
+      icon: Usb,
+      iconColor: "text-amber-600",
+      alertDot: true,
       end: true,
     },
     {

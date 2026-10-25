@@ -145,3 +145,4 @@ softwareLicenseSchema.methods.calculateStatus = function (now = new Date()) {
 const SoftwareLicense = mongoose.model("SoftwareLicense", softwareLicenseSchema);
 
 export default SoftwareLicense;
+

@@ -43,6 +43,7 @@ const AdminCategoriesPage = lazy(() => import("../pages/admin/AdminCategoriesPag
 const AdminReportsPage = lazy(() => import("../pages/admin/AdminReportsPage.jsx"));
 const AssetManagementPage = lazy(() => import("../pages/admin/AssetManagementPage.jsx"));
 const SoftwareLicensePage = lazy(() => import("../pages/admin/SoftwareLicensePage.jsx"));
+const UsbSecurityPage = lazy(() => import("../pages/admin/UsbSecurityPage.jsx"));
 const NetworkTopologyPage = lazy(() => import("../pages/NetworkTopologyPage.jsx"));
 
 function StandardPageRoute({ children }) {
@@ -160,6 +161,10 @@ function AppRoutes() {
               element={<StandardPageRoute><SoftwareLicensePage /></StandardPageRoute>}
             />
             <Route
+              path="technician/usb-security"
+              element={<StandardPageRoute><UsbSecurityPage /></StandardPageRoute>}
+            />
+            <Route
               path="technician/tickets/all"
               element={<StandardPageRoute><TechnicianAllTicketsPage /></StandardPageRoute>}
             />
@@ -201,6 +206,10 @@ function AppRoutes() {
             <Route
               path="admin/software"
               element={<StandardPageRoute><SoftwareLicensePage /></StandardPageRoute>}
+            />
+            <Route
+              path="admin/usb-security"
+              element={<StandardPageRoute><UsbSecurityPage /></StandardPageRoute>}
             />
             <Route
               path="admin/users"
